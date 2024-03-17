@@ -3,6 +3,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -12,6 +14,7 @@ type Mutation struct {
 type NewUser struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Name     string `json:"name"`
 }
 
 type Query struct {
@@ -19,7 +22,8 @@ type Query struct {
 
 type User struct {
 	ID        uuid.UUID `json:"id"`
-	Username  string    `json:"username"`
-	CreatedAt string    `json:"createdAt"`
-	UpdatedAt string    `json:"updatedAt"`
+	Username  *string   `json:"username,omitempty"`
+	Name      *string   `json:"name,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

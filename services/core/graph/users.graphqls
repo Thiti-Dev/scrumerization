@@ -1,0 +1,21 @@
+type User {
+  id: UUID!
+  username: String
+  name: String
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+input NewUser {
+  username: String!
+  password: String!
+  name: String!
+}
+
+type Query {
+  users: [User!]!
+}
+
+type Mutation {
+  createUser(input: NewUser!): User!
+}

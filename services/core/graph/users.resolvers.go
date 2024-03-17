@@ -6,35 +6,46 @@ package graph
 
 import (
 	"context"
-	"time"
+	"log"
 
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
-	"github.com/google/uuid"
 )
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
-	user := &model.User{
-		ID:        uuid.New(),
-		Username:  "Thiti",
-		CreatedAt: time.Now().Format(time.RFC3339),
-		UpdatedAt: time.Now().Format(time.RFC3339),
+	createdUser, err := r.UserRepository.Create(input)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	return user, nil
+	user := &model.User{
+		ID:        createdUser.ID,
+		Username:  createdUser.Username,
+		CreatedAt: createdUser.CreatedAt,
+		UpdatedAt: createdUser.UpdatedAt,
+	}
+
+	return user, err
 }
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	users := []*model.User{
-		{
-			ID:        uuid.New(),
-			CreatedAt: time.Now().Format(time.RFC3339),
-			UpdatedAt: time.Now().Format(time.RFC3339),
-		},
+	users, err := r.UserRepository.FindAll()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	return users, nil
+	var res []*model.User
+	for _, user := range users {
+		res = append(res, &model.User{
+			ID:        user.ID,
+			Username:  user.Name,
+			Name:      user.Name,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+		})
+	}
+	return res, nil
 }
 
 // Mutation returns MutationResolver implementation.
