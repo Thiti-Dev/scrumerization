@@ -1,7 +1,7 @@
-include .env
+include app.env
 
 local_db_connection_url ?= postgresql://postgres:postgres@localhost:5432/scrumerization?sslmode=disable
-migration_path ?= internal/infrastructure/db/postgres/
+migration_path ?= internal/infrastructure/db/postgres/migration
 step ?= 1
 
 dev:
@@ -30,5 +30,6 @@ migrate-down-step:
         $(error step is not set. Please provide a value representing number.)
     endif
 	migrate -path ${migration_path} -database "$(DB_SOURCE)" -verbose down $(step)
-
-.PHONY: dev gql-generate migrate-create migrate-up migrate-up-ci migrate-down migrate-up-step migrate-up-ci migrate-down-ci migrate-down-step migrate-reset
+jet-gen-ci:
+	jet -dsn=${local_db_connection_url} -schema=public -path=./.gen
+.PHONY: dev gql-generate migrate-create migrate-up migrate-up-ci migrate-down migrate-up-step migrate-up-ci migrate-down-ci migrate-down-step migrate-reset jet-gen-ci
