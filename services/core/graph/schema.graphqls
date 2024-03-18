@@ -1,2 +1,6 @@
 scalar UUID
 scalar Time
+
+directive @jsonConstraint(
+	format: String
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
