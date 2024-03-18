@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.45
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/go-jet/jet/v2 v2.11.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/invopop/jsonschema v0.12.0
 	github.com/lib/pq v1.10.8

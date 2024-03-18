@@ -6,7 +6,8 @@ import (
 
 // It uses mapstructure under the hood
 type Config struct {
-	DBSource string `mapstructure:"DB_SOURCE"`
+	DBSource  string `mapstructure:"DB_SOURCE"`
+	JwtSecret string `mapstructure:"JWT_SECRET"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
