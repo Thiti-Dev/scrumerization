@@ -32,10 +32,22 @@ func main() {
 	panicOnError(err)
 
 	userRepository := repositories.NewUserRepository(db)
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
+	c := graph.Config{Resolvers: &graph.Resolver{
 		SqlConnection:  db,
 		UserRepository: userRepository,
-	}}))
+	}}
+
+	// c.Directives.AddJsonSchemaTag = func(ctx context.Context, obj interface{}, next graphql.Resolver, tag string) (interface{}, error) {
+	// 	val, err := next(ctx)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+
+	// 	fmt.Println(val)
+	// 	return val, nil
+	// }
+
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(c))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
