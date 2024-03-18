@@ -6,10 +6,10 @@ type User {
   updatedAt: Time!
 }
 
-input NewUser {
-  username: String!
-  password: String!
-  name: String!
+input CreateUserInput {
+  username: String! @jsonConstraint(format: "minLength=6,maxLength=32,required")
+  password: String! @jsonConstraint(format: "minLength=8,maxLength=64,required")
+  name: String! @jsonConstraint(format: "minLength=3,required")
 }
 
 type Query {
@@ -17,5 +17,5 @@ type Query {
 }
 
 type Mutation {
-  createUser(input: NewUser!): User!
+  createUser(input: CreateUserInput!): User!
 }

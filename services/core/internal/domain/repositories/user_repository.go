@@ -6,6 +6,6 @@ import (
 )
 
 type UserRepository interface {
-	Create(input model.NewUser) (*jetModel.Users, error)
+	Create(input model.CreateUserInput) (*jetModel.Users, error)
 	FindAll() ([]jetModel.Users, error)
 }

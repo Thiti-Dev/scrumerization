@@ -2,11 +2,13 @@ package repositories
 
 import (
 	"database/sql"
+	"log"
 
 	jetModel "github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/model"
 	"github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/table"
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 	repository "github.com/Thiti-Dev/scrumerization-core-service/internal/domain/repositories"
+	"github.com/alexedwards/argon2id"
 	jet "github.com/go-jet/jet/v2/postgres"
 )
 
@@ -21,12 +23,18 @@ func NewUserRepository(dbConn *sql.DB) repository.UserRepository {
 	}
 }
 
-func (repo *UserRepository) Create(input model.NewUser) (*jetModel.Users, error) {
+func (repo *UserRepository) Create(input model.CreateUserInput) (*jetModel.Users, error) {
+	//encrypt the password
+	hashedPassword, err := argon2id.CreateHash(input.Password, argon2id.DefaultParams)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	stmt := table.Users.INSERT(table.Users.Username, table.Users.Password, table.Users.Name).
-		VALUES(input.Username, input.Username, input.Name).RETURNING(table.Users.AllColumns)
+		VALUES(input.Username, hashedPassword, input.Name).RETURNING(table.Users.AllColumns)
 
 	user := jetModel.Users{}
-	err := stmt.Query(repo.SqlConnection, &user)
+	err = stmt.Query(repo.SqlConnection, &user)
 
 	return &user, err
 }

@@ -8,13 +8,13 @@ import (
 	"github.com/google/uuid"
 )
 
-type Mutation struct {
+type CreateUserInput struct {
+	Username string `json:"username" jsonschema:"minLength=6,maxLength=32,required"`
+	Password string `json:"password" jsonschema:"minLength=8,maxLength=64,required"`
+	Name     string `json:"name" jsonschema:"minLength=3,required"`
 }
 
-type NewUser struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
+type Mutation struct {
 }
 
 type Query struct {
