@@ -44,6 +44,27 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 	return user, err
 }
 
+// LoginUser is the resolver for the loginUser field.
+func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginUserInput) (*model.LoginUserResponse, error) {
+	if verr, valid := validation.ValidateJsonSchemaFromStruct(input); !valid {
+		graphql.AddError(ctx, &gqlerror.Error{
+			Message:    "validation Error",
+			Extensions: verr.FieldErrorsIntoArbitaryMapInterface(),
+		})
+		return nil, nil // no need to return error as the graphql will infer the errors added by .AddError by itself
+	}
+
+	token, refreshToken, err := r.UserRepository.LoginUser(input)
+	if err != nil {
+		return nil, fmt.Errorf(err.Error())
+	}
+
+	return &model.LoginUserResponse{
+		Token:        token,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 	users, err := r.UserRepository.FindAll()

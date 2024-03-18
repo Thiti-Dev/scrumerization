@@ -12,11 +12,11 @@ import (
 func TestCreateToken(t *testing.T) {
 	payload, err := NewPayload(uuid.New(), "test", time.Hour)
 	assert.NoError(t, err)
-	token := CreateToken(payload)
+	token := CreateToken(payload, []byte("asdasd"))
 	assert.NotEmpty(t, token)
 
 	// Verifying the created token
-	decryptedPayload, err := VerifyToken(token)
+	decryptedPayload, err := VerifyToken(token, []byte("asdasd"))
 	assert.NoError(t, err)
 	assert.NotEmpty(t, decryptedPayload)
 }

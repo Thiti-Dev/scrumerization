@@ -31,7 +31,7 @@ func main() {
 	db, err := sql.Open("postgres", config.DBSource)
 	panicOnError(err)
 
-	userRepository := repositories.NewUserRepository(db)
+	userRepository := repositories.NewUserRepository(db, &config)
 	c := graph.Config{Resolvers: &graph.Resolver{
 		SqlConnection:  db,
 		UserRepository: userRepository,

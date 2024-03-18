@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	infraUtils "github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -25,24 +24,14 @@ type Payload struct {
 	jwt.RegisteredClaims
 }
 
-var secretAsByte []byte
-
-func init() {
-	config, err := infraUtils.LoadConfig("../../")
-	if err != nil {
-		log.Fatal(err)
-	}
-	secretAsByte = []byte(config.JwtSecret)
-}
-
-func VerifyToken(token string) (*Payload, error) {
+func VerifyToken(token string, secret []byte) (*Payload, error) {
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
 			return nil, ErrInvalidToken
 		}
 
-		return secretAsByte, nil
+		return secret, nil
 	}
 	jwtToken, err := jwt.ParseWithClaims(token, &Payload{}, keyFunc)
 	if err != nil {
@@ -84,11 +73,11 @@ func NewPayload(user_uuid uuid.UUID, name string, duration time.Duration) (*Payl
 	return payload, nil
 }
 
-func CreateToken(payload *Payload) string {
+func CreateToken(payload *Payload, secret []byte) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
 	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString(secretAsByte)
+	tokenString, err := token.SignedString(secret)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -14,6 +14,16 @@ type CreateUserInput struct {
 	Name     string `json:"name" jsonschema:"minLength=3,required"`
 }
 
+type LoginUserInput struct {
+	Username string `json:"username" jsonschema:"required"`
+	Password string `json:"password" jsonschema:"required"`
+}
+
+type LoginUserResponse struct {
+	Token        string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
+}
+
 type Mutation struct {
 }
 

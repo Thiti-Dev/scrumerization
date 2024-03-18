@@ -2,25 +2,54 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	"log"
+	"time"
 
 	jetModel "github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/model"
 	"github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/table"
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 	repository "github.com/Thiti-Dev/scrumerization-core-service/internal/domain/repositories"
+	"github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/utils"
+	"github.com/Thiti-Dev/scrumerization-core-service/pkg/tokenizer"
 	"github.com/alexedwards/argon2id"
 	jet "github.com/go-jet/jet/v2/postgres"
 )
 
 type UserRepository struct {
 	SqlConnection *sql.DB
+	Config        *utils.Config
 }
 
-func NewUserRepository(dbConn *sql.DB) repository.UserRepository {
+func NewUserRepository(dbConn *sql.DB, config *utils.Config) repository.UserRepository {
 	// Initialize any dependencies and return a new UserRepository instance.
 	return &UserRepository{
 		SqlConnection: dbConn,
+		Config:        config,
 	}
+}
+
+func (repo *UserRepository) LoginUser(input model.LoginUserInput) (string, string, error) {
+	stmt := jet.SELECT(table.Users.ID, table.Users.Name, table.Users.Password).FROM(table.Users).WHERE(table.Users.Username.EQ(jet.String(input.Username))).LIMIT(1)
+	user := jetModel.Users{}
+	err := stmt.Query(repo.SqlConnection, &user)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	isMatch, err := argon2id.ComparePasswordAndHash(input.Password, user.Password)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if !isMatch {
+		return "", "", errors.New("invalid password")
+	}
+
+	payload, err := tokenizer.NewPayload(user.ID, *user.Name, time.Hour)
+	token := tokenizer.CreateToken(payload, []byte(repo.Config.JwtSecret))
+
+	return token, token, err
 }
 
 func (repo *UserRepository) Create(input model.CreateUserInput) (*jetModel.Users, error) {

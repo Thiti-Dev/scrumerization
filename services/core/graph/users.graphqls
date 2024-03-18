@@ -1,3 +1,21 @@
+input CreateUserInput {
+  username: String! @jsonConstraint(format: "minLength=6,maxLength=32,required")
+  password: String! @jsonConstraint(format: "minLength=8,maxLength=64,required")
+  name: String! @jsonConstraint(format: "minLength=3,required")
+}
+
+input LoginUserInput {
+  username: String! @jsonConstraint(format: "required")
+  password: String! @jsonConstraint(format: "required")
+}
+
+
+type LoginUserResponse {
+  token: String!
+  refreshToken: String!
+}
+
+
 type User {
   id: UUID!
   username: String
@@ -6,16 +24,11 @@ type User {
   updatedAt: Time!
 }
 
-input CreateUserInput {
-  username: String! @jsonConstraint(format: "minLength=6,maxLength=32,required")
-  password: String! @jsonConstraint(format: "minLength=8,maxLength=64,required")
-  name: String! @jsonConstraint(format: "minLength=3,required")
-}
-
 type Query {
   users: [User!]!
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): User!
+  loginUser(input: LoginUserInput!): LoginUserResponse!
 }
