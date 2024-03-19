@@ -1,0 +1,46 @@
+#/* --------------------------------- Models --------------------------------- */
+
+type User {
+  id: UUID!
+  username: String
+  name: String
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+
+#/* -------------------------------------------------------------------------- */
+
+
+#/* ---------------------------------- INPUT --------------------------------- */
+
+input CreateUserInput {
+  username: String! @jsonConstraint(format: "minLength=6,maxLength=32,required")
+  password: String! @jsonConstraint(format: "minLength=8,maxLength=64,required")
+  name: String! @jsonConstraint(format: "minLength=3,required")
+}
+
+input LoginUserInput {
+  username: String! @jsonConstraint(format: "required")
+  password: String! @jsonConstraint(format: "required")
+}
+
+#/* -------------------------------------------------------------------------- */
+
+#/* -------------------------------- Response -------------------------------- */
+
+type LoginUserResponse {
+  token: String!
+  refreshToken: String!
+}
+
+#/* -------------------------------------------------------------------------- */
+
+extend type Query {
+  users: [User!]!
+}
+
+extend type Mutation {
+  createUser(input: CreateUserInput!): User!
+  loginUser(input: LoginUserInput!): LoginUserResponse!
+}
