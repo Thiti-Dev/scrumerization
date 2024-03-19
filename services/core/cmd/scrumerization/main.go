@@ -34,9 +34,11 @@ func main() {
 	panicOnError(err)
 
 	userRepository := repositories.NewUserRepository(db, &config)
+	roomRepository := repositories.NewRoomRepository(db, &config)
 	c := graph.Config{Resolvers: &graph.Resolver{
 		SqlConnection:  db,
 		UserRepository: userRepository,
+		RoomRepository: roomRepository,
 	}}
 
 	wrappers.RegisterDirectives(&c, &config)

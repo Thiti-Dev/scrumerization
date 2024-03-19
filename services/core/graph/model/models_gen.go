@@ -37,6 +37,17 @@ type PrivateVersionResponse struct {
 type Query struct {
 }
 
+type Room struct {
+	ID        uuid.UUID `json:"id"`
+	CreatorID uuid.UUID `json:"creator_id"`
+	RoomName  *string   `json:"room_name,omitempty"`
+	Password  *string   `json:"password,omitempty"`
+	IsActive  bool      `json:"is_active"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Creator   *User     `json:"creator,omitempty"`
+}
+
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	Username  *string   `json:"username,omitempty"`

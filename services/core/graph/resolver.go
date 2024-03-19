@@ -15,4 +15,5 @@ import (
 type Resolver struct {
 	SqlConnection  *sql.DB
 	UserRepository repositories.UserRepository
+	RoomRepository repositories.RoomRepository
 }
