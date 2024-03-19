@@ -69,7 +69,7 @@ type ComplexityRoot struct {
 	Query struct {
 		PrivateVersion func(childComplexity int) int
 		Roles          func(childComplexity int) int
-		Rooms          func(childComplexity int) int
+		Rooms          func(childComplexity int, where *model.RoomWhereClause) int
 		Users          func(childComplexity int) int
 	}
 
@@ -100,7 +100,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Roles(ctx context.Context) ([]model.Role, error)
-	Rooms(ctx context.Context) ([]*model.Room, error)
+	Rooms(ctx context.Context, where *model.RoomWhereClause) ([]*model.Room, error)
 	Users(ctx context.Context) ([]*model.User, error)
 	PrivateVersion(ctx context.Context) (*model.PrivateVersionResponse, error)
 }
@@ -195,7 +195,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Rooms(childComplexity), true
+		args, err := ec.field_Query_rooms_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Rooms(childComplexity, args["where"].(*model.RoomWhereClause)), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -305,6 +310,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateUserInput,
 		ec.unmarshalInputLoginUserInput,
+		ec.unmarshalInputRoomWhereClause,
 	)
 	first := true
 
@@ -481,6 +487,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_rooms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.RoomWhereClause
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg0, err = ec.unmarshalORoomWhereClause2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐRoomWhereClause(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg0
 	return args, nil
 }
 
@@ -885,7 +906,7 @@ func (ec *executionContext) _Query_rooms(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Rooms(rctx)
+			return ec.resolvers.Query().Rooms(rctx, fc.Args["where"].(*model.RoomWhereClause))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
@@ -952,6 +973,17 @@ func (ec *executionContext) fieldContext_Query_rooms(ctx context.Context, field 
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_rooms_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3630,6 +3662,40 @@ func (ec *executionContext) unmarshalInputLoginUserInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputRoomWhereClause(ctx context.Context, obj interface{}) (model.RoomWhereClause, error) {
+	var it model.RoomWhereClause
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "room_name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "room_name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("room_name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RoomName = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4926,6 +4992,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) unmarshalORoomWhereClause2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐRoomWhereClause(ctx context.Context, v interface{}) (*model.RoomWhereClause, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputRoomWhereClause(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -4939,6 +5013,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalUUID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalUUID(*v)
 	return res
 }
 

@@ -48,6 +48,11 @@ type Room struct {
 	Creator   *User     `json:"creator,omitempty"`
 }
 
+type RoomWhereClause struct {
+	ID       *uuid.UUID `json:"id,omitempty"`
+	RoomName *string    `json:"room_name,omitempty"`
+}
+
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	Username  *string   `json:"username,omitempty"`

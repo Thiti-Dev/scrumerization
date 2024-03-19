@@ -15,12 +15,15 @@ type Room{
 
 
 #/* ---------------------------------- INPUT --------------------------------- */
-
+input RoomWhereClause {
+  id: UUID
+  room_name: String
+}
 #/* -------------------------------------------------------------------------- */
 
 #/* -------------------------------- Response -------------------------------- */
 #/* -------------------------------------------------------------------------- */
 
 extend type Query {
-  rooms: [Room!]! @requiredMember(role: ADMIN)
+  rooms(where: RoomWhereClause): [Room!]! @requiredMember(role: ADMIN)
 }

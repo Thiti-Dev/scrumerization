@@ -13,7 +13,7 @@ import (
 )
 
 // Rooms is the resolver for the rooms field.
-func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
+func (r *queryResolver) Rooms(ctx context.Context, where *model.RoomWhereClause) ([]*model.Room, error) {
 	populateUser := false
 
 	_ = graphql.GetOperationContext(ctx)
@@ -24,7 +24,7 @@ func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
 			break
 		}
 	}
-	rooms, err := r.RoomRepository.FindAll(populateUser)
+	rooms, err := r.RoomRepository.FindAll(populateUser, where)
 	if err != nil {
 		return nil, fmt.Errorf(err.Error())
 	}
