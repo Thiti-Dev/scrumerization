@@ -47,9 +47,18 @@ func (repo *UserRepository) LoginUser(input model.LoginUserInput) (string, strin
 	}
 
 	payload, err := tokenizer.NewPayload(user.ID, *user.Name, time.Hour)
+	if err != nil {
+		return "", "", err
+	}
 	token := tokenizer.CreateToken(payload, []byte(repo.Config.JwtSecret))
 
-	return token, token, err
+	refreshTokenPayload, err := tokenizer.NewPayload(user.ID, *user.Name, time.Hour*12)
+	if err != nil {
+		return "", "", err
+	}
+	refreshToken := tokenizer.CreateToken(refreshTokenPayload, []byte(repo.Config.JwtSecret))
+
+	return token, refreshToken, err
 }
 
 func (repo *UserRepository) Create(input model.CreateUserInput) (*jetModel.Users, error) {
