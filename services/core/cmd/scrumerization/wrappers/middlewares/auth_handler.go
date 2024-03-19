@@ -3,6 +3,8 @@ package middlewares
 import (
 	"context"
 	"net/http"
+
+	context_type "github.com/Thiti-Dev/scrumerization-core-service/internal/domain/context"
 )
 
 func AuthHandlerForGraphql(next http.Handler) http.Handler {
@@ -12,7 +14,7 @@ func AuthHandlerForGraphql(next http.Handler) http.Handler {
 		if header == "" {
 			next.ServeHTTP(w, r)
 		} else {
-			ctx := context.WithValue(r.Context(), "token", header) // just forward it, will do the check in the directive
+			ctx := context.WithValue(r.Context(), context_type.TokenCtxKey, header) // just forward it, will do the check in the directive
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 	})
