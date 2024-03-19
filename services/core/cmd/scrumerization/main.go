@@ -10,9 +10,11 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/Thiti-Dev/scrumerization-core-service/cmd/scrumerization/wrappers"
+	"github.com/Thiti-Dev/scrumerization-core-service/cmd/scrumerization/wrappers/middlewares"
 	"github.com/Thiti-Dev/scrumerization-core-service/graph"
 	"github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/db/postgres/repositories"
-	. "github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/utils"
+	infraUtils "github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/utils"
 )
 
 const defaultPort = "8080"
@@ -23,7 +25,7 @@ func main() {
 		port = defaultPort
 	}
 
-	config, err := LoadConfig(".")
+	config, err := infraUtils.LoadConfig(".")
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
@@ -37,20 +39,12 @@ func main() {
 		UserRepository: userRepository,
 	}}
 
-	// c.Directives.AddJsonSchemaTag = func(ctx context.Context, obj interface{}, next graphql.Resolver, tag string) (interface{}, error) {
-	// 	val, err := next(ctx)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	fmt.Println(val)
-	// 	return val, nil
-	// }
+	wrappers.RegisterDirectives(&c, &config)
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(c))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	http.Handle("/query", middlewares.AuthHandlerForGraphql(srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

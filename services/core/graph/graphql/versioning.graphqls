@@ -15,5 +15,5 @@ type PrivateVersionResponse{
 #/* -------------------------------------------------------------------------- */
 
 extend type Query {
-  privateVersion: PrivateVersionResponse!
+  privateVersion: PrivateVersionResponse! @requiredMember(role: USER)
 }

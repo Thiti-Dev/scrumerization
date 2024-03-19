@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/model"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -16,11 +17,12 @@ var (
 )
 
 type Payload struct {
-	ID        uuid.UUID `json:"id"`
-	UUID      uuid.UUID `json:"uuid"`
-	Name      string    `json:"username"`
-	IssuedAt  time.Time `json:"issued_at"`
-	ExpiredAt time.Time `json:"expired_at"`
+	ID        uuid.UUID      `json:"id"`
+	UUID      uuid.UUID      `json:"uuid"`
+	Name      string         `json:"username"`
+	Role      model.UserRole `json:"role"`
+	IssuedAt  time.Time      `json:"issued_at"`
+	ExpiredAt time.Time      `json:"expired_at"`
 	jwt.RegisteredClaims
 }
 
@@ -55,7 +57,7 @@ func VerifyToken(token string, secret []byte) (*Payload, error) {
 	return payload, nil
 }
 
-func NewPayload(user_uuid uuid.UUID, name string, duration time.Duration) (*Payload, error) {
+func NewPayload(user_uuid uuid.UUID, name string, role model.UserRole, duration time.Duration) (*Payload, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -65,6 +67,7 @@ func NewPayload(user_uuid uuid.UUID, name string, duration time.Duration) (*Payl
 		ID:               tokenID,
 		UUID:             user_uuid,
 		Name:             name,
+		Role:             role,
 		IssuedAt:         time.Now(),
 		ExpiredAt:        time.Now().Add(duration),
 		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration))},

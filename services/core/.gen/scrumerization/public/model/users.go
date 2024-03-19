@@ -17,6 +17,7 @@ type Users struct {
 	Username  *string
 	Password  string
 	Name      *string
+	Role      UserRole
 	IsActive  bool
 	CreatedAt time.Time
 	UpdatedAt time.Time

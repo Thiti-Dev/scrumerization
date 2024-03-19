@@ -30,7 +30,7 @@ func NewUserRepository(dbConn *sql.DB, config *utils.Config) repository.UserRepo
 }
 
 func (repo *UserRepository) LoginUser(input model.LoginUserInput) (string, string, error) {
-	stmt := jet.SELECT(table.Users.ID, table.Users.Name, table.Users.Password).FROM(table.Users).WHERE(table.Users.Username.EQ(jet.String(input.Username))).LIMIT(1)
+	stmt := jet.SELECT(table.Users.ID, table.Users.Name, table.Users.Password, table.Users.Role).FROM(table.Users).WHERE(table.Users.Username.EQ(jet.String(input.Username))).LIMIT(1)
 	user := jetModel.Users{}
 	err := stmt.Query(repo.SqlConnection, &user)
 	if err != nil {
@@ -46,13 +46,13 @@ func (repo *UserRepository) LoginUser(input model.LoginUserInput) (string, strin
 		return "", "", errors.New("invalid password")
 	}
 
-	payload, err := tokenizer.NewPayload(user.ID, *user.Name, time.Hour)
+	payload, err := tokenizer.NewPayload(user.ID, *user.Name, user.Role, time.Hour)
 	if err != nil {
 		return "", "", err
 	}
 	token := tokenizer.CreateToken(payload, []byte(repo.Config.JwtSecret))
 
-	refreshTokenPayload, err := tokenizer.NewPayload(user.ID, *user.Name, time.Hour*12)
+	refreshTokenPayload, err := tokenizer.NewPayload(user.ID, *user.Name, user.Role, time.Hour*12)
 	if err != nil {
 		return "", "", err
 	}
