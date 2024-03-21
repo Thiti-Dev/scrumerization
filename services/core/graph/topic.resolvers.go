@@ -11,6 +11,7 @@ import (
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 	context_type "github.com/Thiti-Dev/scrumerization-core-service/internal/domain/context"
 	"github.com/Thiti-Dev/scrumerization-core-service/pkg/tokenizer"
+	"github.com/google/uuid"
 )
 
 // CreateTopic is the resolver for the createTopic field.
@@ -50,4 +51,41 @@ func (r *mutationResolver) CreateTopic(ctx context.Context, input *model.CreateT
 		CreatedAt: topic.CreatedAt,
 		UpdatedAt: topic.UpdatedAt,
 	}, nil
+}
+
+// Topics is the resolver for the topics field.
+func (r *queryResolver) Topics(ctx context.Context, roomID uuid.UUID, password *string) ([]*model.Topic, error) {
+	room, err := r.RoomRepository.FindRoomByID(roomID)
+	if err != nil {
+		return nil, err
+	}
+	if room == nil {
+		return nil, fmt.Errorf("the room with id:\"%v\" doesn't exist", roomID)
+	}
+	if room.Password != nil {
+		// If password is required
+		if room.Password != password {
+			return nil, fmt.Errorf("invalid room password given")
+		}
+	}
+
+	topics, err := r.TopicRepository.GetTopicsFromSpecificRoom(roomID)
+	if err != nil {
+		return nil, err
+	}
+	var res []*model.Topic
+	for _, topic := range topics {
+		res = append(res, &model.Topic{
+			ID:        topic.ID,
+			RoomID:    topic.RoomID,
+			Name:      topic.Name,
+			AvgScore:  topic.AvgScore,
+			IsActive:  topic.IsActive,
+			CreatedAt: topic.CreatedAt,
+			UpdatedAt: topic.UpdatedAt,
+		})
+	}
+
+	return res, nil
+
 }

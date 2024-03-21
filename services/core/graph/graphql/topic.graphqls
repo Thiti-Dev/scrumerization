@@ -23,6 +23,10 @@ input CreateTopicInput{
 
 #/* -------------------------------------------------------------------------- */
 
+extend type Query {
+    topics(roomID: UUID!,password: String): [Topic!]! @requiredMember(role: USER)# View topics in specific room
+}
+
 extend type Mutation {
     createTopic(input: CreateTopicInput): Topic! @requiredMember(role: USER)
 }
