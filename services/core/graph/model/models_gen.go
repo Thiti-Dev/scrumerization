@@ -48,9 +48,22 @@ type Room struct {
 	Creator   *User     `json:"creator,omitempty"`
 }
 
+type RoomCreationInput struct {
+	Name     *string `json:"name,omitempty"`
+	Password *string `json:"password,omitempty"`
+}
+
+type RoomState struct {
+	Clients []uuid.UUID `json:"clients"`
+	Active  bool        `json:"active"`
+}
+
 type RoomWhereClause struct {
 	ID       *uuid.UUID `json:"id,omitempty"`
 	RoomName *string    `json:"room_name,omitempty"`
+}
+
+type Subscription struct {
 }
 
 type User struct {

@@ -11,6 +11,11 @@ type Room{
     creator: User
 }
 
+type RoomState{
+  clients: [UUID!]!
+  active: Boolean!
+}
+
 #/* -------------------------------------------------------------------------- */
 
 
@@ -19,6 +24,11 @@ input RoomWhereClause {
   id: UUID
   room_name: String
 }
+
+input RoomCreationInput {
+  name: String
+  password: String
+}
 #/* -------------------------------------------------------------------------- */
 
 #/* -------------------------------- Response -------------------------------- */
@@ -26,4 +36,12 @@ input RoomWhereClause {
 
 extend type Query {
   rooms(where: RoomWhereClause): [Room!]! @requiredMember(role: ADMIN)
+}
+
+extend type Mutation {
+  createRoom(input: RoomCreationInput!): Room! @requiredMember(role: USER)
+}
+
+extend type Subscription {
+  connectToRoom(roomID: UUID!): RoomState!  
 }

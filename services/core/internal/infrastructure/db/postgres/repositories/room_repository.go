@@ -3,7 +3,9 @@ package repositories
 import (
 	"database/sql"
 	"log"
+	"strings"
 
+	jetModel "github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/model"
 	"github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/table"
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 	"github.com/Thiti-Dev/scrumerization-core-service/internal/domain/entities"
@@ -55,4 +57,28 @@ func (repo *RoomRepository) FindAll(populateUser bool, where *model.RoomWhereCla
 	}
 
 	return rooms, nil
+}
+
+func (repo *RoomRepository) CreateRoom(creatorId uuid.UUID, input *model.RoomCreationInput) (*jetModel.Rooms, error) {
+	stmt := table.Rooms.INSERT(table.Rooms.RoomName, table.Rooms.Password, table.Rooms.CreatorID).
+		VALUES(input.Name, input.Password, creatorId).RETURNING(table.Rooms.AllColumns)
+
+	room := jetModel.Rooms{}
+	err := stmt.Query(repo.SqlConnection, &room)
+
+	return &room, err
+}
+
+func (repo *RoomRepository) FindRoomByID(roomID uuid.UUID) (*entities.PopulatedRoom, error) {
+	stmt := table.Rooms.SELECT(table.Rooms.AllColumns).FROM(table.Rooms).WHERE(table.Rooms.ID.EQ(jet.UUID(roomID))).LIMIT(1)
+	room := entities.PopulatedRoom{}
+	err := stmt.Query(repo.SqlConnection, &room)
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows") {
+			// No row has been found
+			return nil, nil // returns out the nil instead
+		}
+	}
+
+	return &room, err
 }

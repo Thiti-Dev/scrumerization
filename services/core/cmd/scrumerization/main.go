@@ -13,6 +13,7 @@ import (
 	"github.com/Thiti-Dev/scrumerization-core-service/cmd/scrumerization/wrappers"
 	"github.com/Thiti-Dev/scrumerization-core-service/cmd/scrumerization/wrappers/middlewares"
 	"github.com/Thiti-Dev/scrumerization-core-service/graph"
+	"github.com/Thiti-Dev/scrumerization-core-service/internal/domain/rooms"
 	"github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/db/postgres/repositories"
 	infraUtils "github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/utils"
 )
@@ -35,10 +36,12 @@ func main() {
 
 	userRepository := repositories.NewUserRepository(db, &config)
 	roomRepository := repositories.NewRoomRepository(db, &config)
+	roomHub := rooms.NewRoomHub()
 	c := graph.Config{Resolvers: &graph.Resolver{
 		SqlConnection:  db,
 		UserRepository: userRepository,
 		RoomRepository: roomRepository,
+		RoomHub:        roomHub,
 	}}
 
 	wrappers.RegisterDirectives(&c, &config)

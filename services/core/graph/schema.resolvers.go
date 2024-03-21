@@ -6,6 +6,8 @@ package graph
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 )
@@ -20,11 +22,36 @@ func (r *queryResolver) Roles(ctx context.Context) ([]model.Role, error) {
 	return model.AllRole, nil
 }
 
+// ServerTimeStream is the resolver for the serverTimeStream field.
+func (r *subscriptionResolver) ServerTimeStream(ctx context.Context) (<-chan *time.Time, error) {
+	ch := make(chan *time.Time)
+	go func() {
+		defer close(ch)
+		for {
+			time.Sleep(1 * time.Second)
+
+			currentTime := time.Now()
+			select {
+			case <-ctx.Done():
+				fmt.Println("Subscription Closed")
+				return
+			case ch <- &currentTime:
+			}
+		}
+	}()
+
+	return ch, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// Subscription returns SubscriptionResolver implementation.
+func (r *Resolver) Subscription() SubscriptionResolver { return &subscriptionResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

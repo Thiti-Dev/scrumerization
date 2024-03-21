@@ -28,3 +28,7 @@ type Query {
 type Mutation {
     blankMutation: Boolean!
 }
+
+type Subscription {
+  serverTimeStream: Time!
+}
