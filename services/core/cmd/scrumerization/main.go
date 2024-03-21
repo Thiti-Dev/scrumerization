@@ -36,12 +36,14 @@ func main() {
 
 	userRepository := repositories.NewUserRepository(db, &config)
 	roomRepository := repositories.NewRoomRepository(db, &config)
+	topicRepository := repositories.NewTopicRepository(db, &config)
 	roomHub := rooms.NewRoomHub()
 	c := graph.Config{Resolvers: &graph.Resolver{
-		SqlConnection:  db,
-		UserRepository: userRepository,
-		RoomRepository: roomRepository,
-		RoomHub:        roomHub,
+		SqlConnection:   db,
+		UserRepository:  userRepository,
+		RoomRepository:  roomRepository,
+		RoomHub:         roomHub,
+		TopicRepository: topicRepository,
 	}}
 
 	wrappers.RegisterDirectives(&c, &config)

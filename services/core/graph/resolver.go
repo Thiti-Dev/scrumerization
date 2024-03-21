@@ -14,8 +14,9 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	SqlConnection  *sql.DB
-	UserRepository repositories.UserRepository
-	RoomRepository repositories.RoomRepository
-	RoomHub        *rooms.RoomHub
+	SqlConnection   *sql.DB
+	UserRepository  repositories.UserRepository
+	RoomRepository  repositories.RoomRepository
+	TopicRepository repositories.TopicRepository
+	RoomHub         *rooms.RoomHub
 }

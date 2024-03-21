@@ -1,0 +1,28 @@
+#/* --------------------------------- Models --------------------------------- */
+type Topic{
+    id: UUID!
+    roomID: UUID!
+    name: String!
+    avgScore: Float
+    isActive: Boolean!
+    createdAt: Time!
+    updatedAt: Time!
+}
+
+#/* -------------------------------------------------------------------------- */
+
+
+#/* ---------------------------------- INPUT --------------------------------- */
+input CreateTopicInput{
+    roomID: UUID!
+    name: String!
+}
+#/* -------------------------------------------------------------------------- */
+
+#/* -------------------------------- Response -------------------------------- */
+
+#/* -------------------------------------------------------------------------- */
+
+extend type Mutation {
+    createTopic(input: CreateTopicInput): Topic! @requiredMember(role: USER)
+}

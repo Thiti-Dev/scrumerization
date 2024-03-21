@@ -17,6 +17,7 @@ type Topics struct {
 	RoomID    uuid.UUID
 	Name      string
 	AvgScore  *float64
+	IsActive  bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

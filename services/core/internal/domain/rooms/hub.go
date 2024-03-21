@@ -43,6 +43,15 @@ func (hub *RoomHub) GetRoomStateFromRoomID(roomID uuid.UUID) *RoomState {
 	return nil
 }
 
+func (hub *RoomHub) MustGetRoomFromRoomID(roomID uuid.UUID) *RoomState {
+	if hub.DoesRoomExist(roomID) {
+		return hub.roomStateByRoomId[roomID]
+	}
+	// create one
+	createdRoom, _ := hub.CrateRoom(roomID) // No need to check for error as this would always success
+	return createdRoom
+}
+
 // func (hub *RoomHub) AddClientChannelToRoom(roomID uuid.UUID, userID uuid.UUID, ch chan *RoomState) bool {
 // 	room := hub.GetRoomStateFromRoomID(roomID)
 // 	if room == nil {

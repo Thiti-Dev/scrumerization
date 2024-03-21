@@ -11,9 +11,16 @@ type Room{
     creator: User
 }
 
+type OnGoingTopic{
+  id: UUID!
+  name: String!
+}
+
 type RoomState{
   clients: [UUID!]!
   active: Boolean!
+  onGoingTopic: OnGoingTopic
+
 }
 
 #/* -------------------------------------------------------------------------- */

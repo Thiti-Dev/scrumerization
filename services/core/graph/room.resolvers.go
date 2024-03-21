@@ -18,7 +18,6 @@ import (
 
 // CreateRoom is the resolver for the createRoom field.
 func (r *mutationResolver) CreateRoom(ctx context.Context, input model.RoomCreationInput) (*model.Room, error) {
-
 	userPayload := ctx.Value(context_type.UserDataCtxKey).(*tokenizer.Payload)
 	room, err := r.RoomRepository.CreateRoom(userPayload.UUID, &input)
 	if err != nil {

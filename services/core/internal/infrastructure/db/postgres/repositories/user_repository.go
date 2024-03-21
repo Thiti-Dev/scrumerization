@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"strings"
 	"time"
 
 	jetModel "github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/model"
@@ -34,7 +35,10 @@ func (repo *UserRepository) LoginUser(input model.LoginUserInput) (string, strin
 	user := jetModel.Users{}
 	err := stmt.Query(repo.SqlConnection, &user)
 	if err != nil {
-		log.Fatal(err)
+		if strings.Contains(err.Error(), "no rows") {
+			return "", "", errors.New("invalid password")
+		}
+		return "", "", err
 	}
 
 	isMatch, err := argon2id.ComparePasswordAndHash(input.Password, user.Password)

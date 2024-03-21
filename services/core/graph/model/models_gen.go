@@ -11,6 +11,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type CreateTopicInput struct {
+	RoomID uuid.UUID `json:"roomID"`
+	Name   string    `json:"name"`
+}
+
 type CreateUserInput struct {
 	Username string `json:"username" jsonschema:"minLength=6,maxLength=32,required"`
 	Password string `json:"password" jsonschema:"minLength=8,maxLength=64,required"`
@@ -28,6 +33,11 @@ type LoginUserResponse struct {
 }
 
 type Mutation struct {
+}
+
+type OnGoingTopic struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }
 
 type PrivateVersionResponse struct {
@@ -54,8 +64,9 @@ type RoomCreationInput struct {
 }
 
 type RoomState struct {
-	Clients []uuid.UUID `json:"clients"`
-	Active  bool        `json:"active"`
+	Clients      []uuid.UUID   `json:"clients"`
+	Active       bool          `json:"active"`
+	OnGoingTopic *OnGoingTopic `json:"onGoingTopic,omitempty"`
 }
 
 type RoomWhereClause struct {
@@ -64,6 +75,16 @@ type RoomWhereClause struct {
 }
 
 type Subscription struct {
+}
+
+type Topic struct {
+	ID        uuid.UUID `json:"id"`
+	RoomID    uuid.UUID `json:"roomID"`
+	Name      string    `json:"name"`
+	AvgScore  *float64  `json:"avgScore,omitempty"`
+	IsActive  bool      `json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type User struct {

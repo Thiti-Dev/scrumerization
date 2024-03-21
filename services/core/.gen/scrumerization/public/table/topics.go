@@ -21,6 +21,7 @@ type topicsTable struct {
 	RoomID    postgres.ColumnString
 	Name      postgres.ColumnString
 	AvgScore  postgres.ColumnFloat
+	IsActive  postgres.ColumnBool
 	CreatedAt postgres.ColumnTimestampz
 	UpdatedAt postgres.ColumnTimestampz
 
@@ -67,10 +68,11 @@ func newTopicsTableImpl(schemaName, tableName, alias string) topicsTable {
 		RoomIDColumn    = postgres.StringColumn("room_id")
 		NameColumn      = postgres.StringColumn("name")
 		AvgScoreColumn  = postgres.FloatColumn("avg_score")
+		IsActiveColumn  = postgres.BoolColumn("is_active")
 		CreatedAtColumn = postgres.TimestampzColumn("created_at")
 		UpdatedAtColumn = postgres.TimestampzColumn("updated_at")
-		allColumns      = postgres.ColumnList{IDColumn, RoomIDColumn, NameColumn, AvgScoreColumn, CreatedAtColumn, UpdatedAtColumn}
-		mutableColumns  = postgres.ColumnList{RoomIDColumn, NameColumn, AvgScoreColumn, CreatedAtColumn, UpdatedAtColumn}
+		allColumns      = postgres.ColumnList{IDColumn, RoomIDColumn, NameColumn, AvgScoreColumn, IsActiveColumn, CreatedAtColumn, UpdatedAtColumn}
+		mutableColumns  = postgres.ColumnList{RoomIDColumn, NameColumn, AvgScoreColumn, IsActiveColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return topicsTable{
@@ -81,6 +83,7 @@ func newTopicsTableImpl(schemaName, tableName, alias string) topicsTable {
 		RoomID:    RoomIDColumn,
 		Name:      NameColumn,
 		AvgScore:  AvgScoreColumn,
+		IsActive:  IsActiveColumn,
 		CreatedAt: CreatedAtColumn,
 		UpdatedAt: UpdatedAtColumn,
 

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX idx_unique_room_id_with_active_room ON topics (room_id) WHERE is_active = True;
