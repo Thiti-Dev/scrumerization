@@ -100,6 +100,11 @@ type TopicVote struct {
 	VotedDesc *string   `json:"votedDesc,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
+	User      *User     `json:"User"`
+}
+
+type TopicVoteQueryWhereClause struct {
+	TopicID *uuid.UUID `json:"topicID,omitempty"`
 }
 
 type User struct {

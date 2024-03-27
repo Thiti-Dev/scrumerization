@@ -15,7 +15,8 @@ type TopicVote{
     voted: Int!
     votedDesc: String
     createdAt: Time!
-    updatedAt: Time!   
+    updatedAt: Time!
+    User: User!
 }
 
 #/* -------------------------------------------------------------------------- */
@@ -31,6 +32,9 @@ input CreateTopicVoteInput{
     voted: Int!
     votedDesc: String
 }
+input TopicVoteQueryWhereClause{
+    topicID: UUID
+}
 #/* -------------------------------------------------------------------------- */
 
 #/* -------------------------------- Response -------------------------------- */
@@ -39,6 +43,7 @@ input CreateTopicVoteInput{
 
 extend type Query {
     topics(roomID: UUID!,password: String): [Topic!]! @requiredMember(role: USER)# View topics in specific room
+    topicVotes(where: TopicVoteQueryWhereClause): [TopicVote!]! @requiredMember(role: USER)
 }
 
 extend type Mutation {

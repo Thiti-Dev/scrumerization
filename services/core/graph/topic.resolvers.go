@@ -106,3 +106,33 @@ func (r *queryResolver) Topics(ctx context.Context, roomID uuid.UUID, password *
 
 	return res, nil
 }
+
+// TopicVotes is the resolver for the topicVotes field.
+func (r *queryResolver) TopicVotes(ctx context.Context, where *model.TopicVoteQueryWhereClause) ([]*model.TopicVote, error) {
+	// userPayload := ctx.Value(context_type.UserDataCtxKey).(*tokenizer.Payload)
+	topics, err := r.TopicRepository.FindAll(where)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []*model.TopicVote
+	for _, topicVote := range topics {
+		res = append(res, &model.TopicVote{
+			TopicID:   topicVote.TopicID,
+			UserID:    topicVote.UserID,
+			Voted:     int(topicVote.Voted),
+			VotedDesc: topicVote.VotedDescription,
+			CreatedAt: topicVote.CreatedAt,
+			UpdatedAt: topicVote.UpdatedAt,
+			User: &model.User{
+				ID:        topicVote.User.ID,
+				Username:  topicVote.User.Username,
+				Name:      topicVote.User.Name,
+				CreatedAt: topicVote.User.CreatedAt,
+				UpdatedAt: topicVote.User.UpdatedAt,
+			},
+		})
+	}
+
+	return res, nil
+}

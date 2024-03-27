@@ -8,6 +8,7 @@ import (
 	jetModel "github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/model"
 	"github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/table"
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
+	"github.com/Thiti-Dev/scrumerization-core-service/internal/domain/entities"
 	repository "github.com/Thiti-Dev/scrumerization-core-service/internal/domain/repositories"
 	"github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/utils"
 	jet "github.com/go-jet/jet/v2/postgres"
@@ -24,6 +25,23 @@ func NewTopicRepository(dbConn *sql.DB, config *utils.Config) repository.TopicRe
 		SqlConnection: dbConn,
 		Config:        config,
 	}
+}
+
+func (repo *TopicRepository) FindAll(where *model.TopicVoteQueryWhereClause) ([]entities.PopulatedTopicVote, error) {
+	stmt := jet.SELECT(table.TopicVotes.AllColumns, table.Users.AllColumns).FROM(table.TopicVotes.INNER_JOIN(
+		table.Users, table.Users.ID.EQ(table.TopicVotes.UserID),
+	))
+
+	if where != nil {
+		if where.TopicID != nil {
+			stmt = stmt.WHERE(table.TopicVotes.TopicID.EQ(jet.UUID(where.TopicID)))
+		}
+	}
+
+	topicVotes := []entities.PopulatedTopicVote{}
+	err := stmt.Query(repo.SqlConnection, &topicVotes)
+
+	return topicVotes, err
 }
 
 func (repo *TopicRepository) CreateTopic(input *model.CreateTopicInput) (*jetModel.Topics, error) {
