@@ -100,7 +100,7 @@ type TopicVote struct {
 	VotedDesc *string   `json:"votedDesc,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
-	User      *User     `json:"User"`
+	User      *User     `json:"User,omitempty"`
 }
 
 type TopicVoteQueryWhereClause struct {

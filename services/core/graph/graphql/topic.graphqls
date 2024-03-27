@@ -16,7 +16,7 @@ type TopicVote{
     votedDesc: String
     createdAt: Time!
     updatedAt: Time!
-    User: User!
+    User: User
 }
 
 #/* -------------------------------------------------------------------------- */
