@@ -49,3 +49,17 @@ func (repo *TopicRepository) GetTopicsFromSpecificRoom(uuid uuid.UUID) ([]jetMod
 
 	return topics, err
 }
+
+func (repo *TopicRepository) CreateTopicVote(userID uuid.UUID, input *model.CreateTopicVoteInput) (*jetModel.TopicVotes, error) {
+	stmt := table.TopicVotes.INSERT(table.TopicVotes.TopicID, table.TopicVotes.UserID, table.TopicVotes.Voted, table.TopicVotes.VotedDescription).
+		VALUES(input.TopicID, userID, input.Voted, input.VotedDesc).RETURNING(table.TopicVotes.AllColumns)
+
+	topicVote := jetModel.TopicVotes{}
+	err := stmt.Query(repo.SqlConnection, &topicVote)
+	if err != nil {
+		if strings.Contains(err.Error(), "topic_id_to_user_id_constraint") {
+			err = fmt.Errorf("only allowed to vote once for each topic")
+		}
+	}
+	return &topicVote, err
+}

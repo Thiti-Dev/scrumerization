@@ -53,6 +53,24 @@ func (r *mutationResolver) CreateTopic(ctx context.Context, input *model.CreateT
 	}, nil
 }
 
+// CreateTopicVote is the resolver for the createTopicVote field.
+func (r *mutationResolver) CreateTopicVote(ctx context.Context, input *model.CreateTopicVoteInput) (*model.TopicVote, error) {
+	userPayload := ctx.Value(context_type.UserDataCtxKey).(*tokenizer.Payload)
+	topicVote, err := r.TopicRepository.CreateTopicVote(userPayload.UUID, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.TopicVote{
+		TopicID:   topicVote.TopicID,
+		UserID:    topicVote.UserID,
+		Voted:     int(topicVote.Voted),
+		VotedDesc: topicVote.VotedDescription,
+		CreatedAt: topicVote.CreatedAt,
+		UpdatedAt: topicVote.UpdatedAt,
+	}, nil
+}
+
 // Topics is the resolver for the topics field.
 func (r *queryResolver) Topics(ctx context.Context, roomID uuid.UUID, password *string) ([]*model.Topic, error) {
 	room, err := r.RoomRepository.FindRoomByID(roomID)
@@ -87,5 +105,4 @@ func (r *queryResolver) Topics(ctx context.Context, roomID uuid.UUID, password *
 	}
 
 	return res, nil
-
 }

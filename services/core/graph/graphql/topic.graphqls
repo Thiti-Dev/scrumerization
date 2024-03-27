@@ -9,6 +9,15 @@ type Topic{
     updatedAt: Time!
 }
 
+type TopicVote{
+    topicID: UUID!
+    userID: UUID!
+    voted: Int!
+    votedDesc: String
+    createdAt: Time!
+    updatedAt: Time!   
+}
+
 #/* -------------------------------------------------------------------------- */
 
 
@@ -16,6 +25,11 @@ type Topic{
 input CreateTopicInput{
     roomID: UUID!
     name: String!
+}
+input CreateTopicVoteInput{
+    topicID: UUID!
+    voted: Int!
+    votedDesc: String
 }
 #/* -------------------------------------------------------------------------- */
 
@@ -29,4 +43,5 @@ extend type Query {
 
 extend type Mutation {
     createTopic(input: CreateTopicInput): Topic! @requiredMember(role: USER)
+    createTopicVote(input: CreateTopicVoteInput): TopicVote! @requiredMember(role: USER)
 }

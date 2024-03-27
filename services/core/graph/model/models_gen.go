@@ -16,6 +16,12 @@ type CreateTopicInput struct {
 	Name   string    `json:"name"`
 }
 
+type CreateTopicVoteInput struct {
+	TopicID   uuid.UUID `json:"topicID"`
+	Voted     int       `json:"voted"`
+	VotedDesc *string   `json:"votedDesc,omitempty"`
+}
+
 type CreateUserInput struct {
 	Username string `json:"username" jsonschema:"minLength=6,maxLength=32,required"`
 	Password string `json:"password" jsonschema:"minLength=8,maxLength=64,required"`
@@ -83,6 +89,15 @@ type Topic struct {
 	Name      string    `json:"name"`
 	AvgScore  *float64  `json:"avgScore,omitempty"`
 	IsActive  bool      `json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type TopicVote struct {
+	TopicID   uuid.UUID `json:"topicID"`
+	UserID    uuid.UUID `json:"userID"`
+	Voted     int       `json:"voted"`
+	VotedDesc *string   `json:"votedDesc,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
