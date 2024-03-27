@@ -71,6 +71,11 @@ func (r *mutationResolver) CreateTopicVote(ctx context.Context, input *model.Cre
 	}, nil
 }
 
+// TerminateTopic is the resolver for the terminateTopic field.
+func (r *mutationResolver) TerminateTopic(ctx context.Context, topicID uuid.UUID) (bool, error) {
+	return r.TopicRepository.TerminateTopic(topicID)
+}
+
 // Topics is the resolver for the topics field.
 func (r *queryResolver) Topics(ctx context.Context, roomID uuid.UUID, password *string) ([]*model.Topic, error) {
 	room, err := r.RoomRepository.FindRoomByID(roomID)

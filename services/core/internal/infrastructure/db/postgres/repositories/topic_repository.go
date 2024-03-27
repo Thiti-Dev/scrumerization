@@ -81,3 +81,9 @@ func (repo *TopicRepository) CreateTopicVote(userID uuid.UUID, input *model.Crea
 	}
 	return &topicVote, err
 }
+
+func (repo *TopicRepository) TerminateTopic(topicID uuid.UUID) (bool, error) {
+	stmt := table.Topics.UPDATE(table.Topics.IsActive).SET(false).WHERE(table.Topics.ID.EQ(jet.UUID(topicID)))
+	_, err := stmt.Exec(repo.SqlConnection)
+	return err == nil, err
+}

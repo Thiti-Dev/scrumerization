@@ -49,4 +49,5 @@ extend type Query {
 extend type Mutation {
     createTopic(input: CreateTopicInput): Topic! @requiredMember(role: USER)
     createTopicVote(input: CreateTopicVoteInput): TopicVote! @requiredMember(role: USER)
+    terminateTopic(topicID: UUID!): Boolean! @requiredMember(role: USER)
 }
