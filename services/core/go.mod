@@ -5,11 +5,13 @@ go 1.21.1
 require (
 	github.com/99designs/gqlgen v0.17.45
 	github.com/alexedwards/argon2id v1.0.0
+	github.com/go-chi/chi v1.5.5
 	github.com/go-jet/jet/v2 v2.11.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/invopop/jsonschema v0.12.0
 	github.com/lib/pq v1.10.8
+	github.com/rs/cors v1.10.1
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0

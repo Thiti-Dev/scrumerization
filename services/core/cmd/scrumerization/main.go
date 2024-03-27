@@ -16,6 +16,8 @@ import (
 	"github.com/Thiti-Dev/scrumerization-core-service/internal/domain/rooms"
 	"github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/db/postgres/repositories"
 	infraUtils "github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/utils"
+	"github.com/go-chi/chi"
+	"github.com/rs/cors"
 )
 
 const defaultPort = "8080"
@@ -48,13 +50,26 @@ func main() {
 
 	wrappers.RegisterDirectives(&c, &config)
 
+	router := chi.NewRouter()
+
+	router.Use(cors.New(cors.Options{
+		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}).Handler)
+
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(c))
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", middlewares.AuthHandlerForGraphql(srv))
+	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	router.Handle("/query", middlewares.AuthHandlerForGraphql(srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
 func panicOnError(err error) {
