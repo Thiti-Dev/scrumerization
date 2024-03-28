@@ -8,7 +8,7 @@ import (
 )
 
 type RoomRepository interface {
-	FindAll(populateUser bool, where *model.RoomWhereClause) ([]entities.PopulatedRoom, error)
+	FindAll(populateUser bool, where *model.RoomWhereClause, paginate *model.PaginationInput) (entities.PaginatedRoomResult, error)
 	FindRoomByID(roomID uuid.UUID) (*entities.PopulatedRoom, error)
 	CreateRoom(creatorId uuid.UUID, input *model.RoomCreationInput) (*jetModel.Rooms, error)
 }

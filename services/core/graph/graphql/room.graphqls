@@ -1,4 +1,10 @@
 #/* --------------------------------- Models --------------------------------- */
+type PaginatedRoomResult{
+    data: [Room!]!
+    totalCount: Int!
+    count: Int!
+}
+
 type Room{
     id: UUID!
     creator_id: UUID!
@@ -7,7 +13,6 @@ type Room{
     is_active: Boolean!
     createdAt: Time!
     updatedAt: Time!
-
     creator: User
 }
 
@@ -30,6 +35,7 @@ type RoomState{
 input RoomWhereClause {
   id: UUID
   room_name: String
+  creator_id: UUID
 }
 
 input RoomCreationInput {
@@ -42,7 +48,7 @@ input RoomCreationInput {
 #/* -------------------------------------------------------------------------- */
 
 extend type Query {
-  rooms(where: RoomWhereClause): [Room!]! @requiredMember(role: ADMIN)
+  rooms(where: RoomWhereClause,paginate: PaginationInput): PaginatedRoomResult! @requiredMember(role: USER)
 }
 
 extend type Mutation {

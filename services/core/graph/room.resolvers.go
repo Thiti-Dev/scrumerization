@@ -35,7 +35,7 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.RoomCreat
 }
 
 // Rooms is the resolver for the rooms field.
-func (r *queryResolver) Rooms(ctx context.Context, where *model.RoomWhereClause) ([]*model.Room, error) {
+func (r *queryResolver) Rooms(ctx context.Context, where *model.RoomWhereClause, paginate *model.PaginationInput) (*model.PaginatedRoomResult, error) {
 	populateUser := false
 
 	_ = graphql.GetOperationContext(ctx)
@@ -46,18 +46,27 @@ func (r *queryResolver) Rooms(ctx context.Context, where *model.RoomWhereClause)
 			break
 		}
 	}
-	rooms, err := r.RoomRepository.FindAll(populateUser, where)
+	paginatedResult, err := r.RoomRepository.FindAll(populateUser, where, paginate)
 	if err != nil {
 		return nil, fmt.Errorf(err.Error())
 	}
 
+	userPayload := ctx.Value(context_type.UserDataCtxKey).(*tokenizer.Payload)
+
 	var res []*model.Room
-	for _, room := range rooms {
+	for _, room := range paginatedResult.Data {
+		roomPassword := room.Password
+		if room.Password != nil {
+			if userPayload.UUID != room.CreatorID {
+				censored := "**********"
+				roomPassword = &censored
+			}
+		}
 		res = append(res, &model.Room{
 			ID:        room.ID,
 			CreatorID: room.CreatorID,
 			RoomName:  room.RoomName,
-			Password:  room.Password,
+			Password:  roomPassword,
 			IsActive:  room.IsActive,
 			CreatedAt: room.CreatedAt,
 			UpdatedAt: room.UpdatedAt,
@@ -71,7 +80,11 @@ func (r *queryResolver) Rooms(ctx context.Context, where *model.RoomWhereClause)
 		})
 	}
 
-	return res, nil
+	return &model.PaginatedRoomResult{
+		Data:       res,
+		TotalCount: paginatedResult.TotalCount,
+		Count:      paginatedResult.Count,
+	}, nil
 }
 
 // ConnectToRoom is the resolver for the connectToRoom field.

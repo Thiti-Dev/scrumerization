@@ -46,6 +46,17 @@ type OnGoingTopic struct {
 	Name string    `json:"name"`
 }
 
+type PaginatedRoomResult struct {
+	Data       []*Room `json:"data"`
+	TotalCount int     `json:"totalCount"`
+	Count      int     `json:"count"`
+}
+
+type PaginationInput struct {
+	Limit  *int `json:"limit,omitempty"`
+	Offset *int `json:"offset,omitempty"`
+}
+
 type PrivateVersionResponse struct {
 	Version string `json:"version"`
 }
@@ -76,8 +87,9 @@ type RoomState struct {
 }
 
 type RoomWhereClause struct {
-	ID       *uuid.UUID `json:"id,omitempty"`
-	RoomName *string    `json:"room_name,omitempty"`
+	ID        *uuid.UUID `json:"id,omitempty"`
+	RoomName  *string    `json:"room_name,omitempty"`
+	CreatorID *uuid.UUID `json:"creator_id,omitempty"`
 }
 
 type Subscription struct {

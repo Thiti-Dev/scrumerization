@@ -73,6 +73,12 @@ type ComplexityRoot struct {
 		Name func(childComplexity int) int
 	}
 
+	PaginatedRoomResult struct {
+		Count      func(childComplexity int) int
+		Data       func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
 	PrivateVersionResponse struct {
 		Version func(childComplexity int) int
 	}
@@ -80,7 +86,7 @@ type ComplexityRoot struct {
 	Query struct {
 		PrivateVersion func(childComplexity int) int
 		Roles          func(childComplexity int) int
-		Rooms          func(childComplexity int, where *model.RoomWhereClause) int
+		Rooms          func(childComplexity int, where *model.RoomWhereClause, paginate *model.PaginationInput) int
 		TopicVotes     func(childComplexity int, where *model.TopicVoteQueryWhereClause) int
 		Topics         func(childComplexity int, roomID uuid.UUID, password *string) int
 		Users          func(childComplexity int) int
@@ -148,7 +154,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Roles(ctx context.Context) ([]model.Role, error)
-	Rooms(ctx context.Context, where *model.RoomWhereClause) ([]*model.Room, error)
+	Rooms(ctx context.Context, where *model.RoomWhereClause, paginate *model.PaginationInput) (*model.PaginatedRoomResult, error)
 	Topics(ctx context.Context, roomID uuid.UUID, password *string) ([]*model.Topic, error)
 	TopicVotes(ctx context.Context, where *model.TopicVoteQueryWhereClause) ([]*model.TopicVote, error)
 	Users(ctx context.Context) ([]*model.User, error)
@@ -285,6 +291,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OnGoingTopic.Name(childComplexity), true
 
+	case "PaginatedRoomResult.count":
+		if e.complexity.PaginatedRoomResult.Count == nil {
+			break
+		}
+
+		return e.complexity.PaginatedRoomResult.Count(childComplexity), true
+
+	case "PaginatedRoomResult.data":
+		if e.complexity.PaginatedRoomResult.Data == nil {
+			break
+		}
+
+		return e.complexity.PaginatedRoomResult.Data(childComplexity), true
+
+	case "PaginatedRoomResult.totalCount":
+		if e.complexity.PaginatedRoomResult.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.PaginatedRoomResult.TotalCount(childComplexity), true
+
 	case "PrivateVersionResponse.version":
 		if e.complexity.PrivateVersionResponse.Version == nil {
 			break
@@ -316,7 +343,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Rooms(childComplexity, args["where"].(*model.RoomWhereClause)), true
+		return e.complexity.Query.Rooms(childComplexity, args["where"].(*model.RoomWhereClause), args["paginate"].(*model.PaginationInput)), true
 
 	case "Query.topicVotes":
 		if e.complexity.Query.TopicVotes == nil {
@@ -590,6 +617,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateTopicVoteInput,
 		ec.unmarshalInputCreateUserInput,
 		ec.unmarshalInputLoginUserInput,
+		ec.unmarshalInputPaginationInput,
 		ec.unmarshalInputRoomCreationInput,
 		ec.unmarshalInputRoomWhereClause,
 		ec.unmarshalInputTopicVoteQueryWhereClause,
@@ -862,6 +890,15 @@ func (ec *executionContext) field_Query_rooms_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["where"] = arg0
+	var arg1 *model.PaginationInput
+	if tmp, ok := rawArgs["paginate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paginate"))
+		arg1, err = ec.unmarshalOPaginationInput2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐPaginationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["paginate"] = arg1
 	return args, nil
 }
 
@@ -1671,6 +1708,156 @@ func (ec *executionContext) fieldContext_OnGoingTopic_name(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _PaginatedRoomResult_data(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedRoomResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedRoomResult_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Room)
+	fc.Result = res
+	return ec.marshalNRoom2ᚕᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐRoomᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedRoomResult_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedRoomResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Room_id(ctx, field)
+			case "creator_id":
+				return ec.fieldContext_Room_creator_id(ctx, field)
+			case "room_name":
+				return ec.fieldContext_Room_room_name(ctx, field)
+			case "password":
+				return ec.fieldContext_Room_password(ctx, field)
+			case "is_active":
+				return ec.fieldContext_Room_is_active(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Room_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Room_updatedAt(ctx, field)
+			case "creator":
+				return ec.fieldContext_Room_creator(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedRoomResult_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedRoomResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedRoomResult_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedRoomResult_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedRoomResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedRoomResult_count(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedRoomResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedRoomResult_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedRoomResult_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedRoomResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PrivateVersionResponse_version(ctx context.Context, field graphql.CollectedField, obj *model.PrivateVersionResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateVersionResponse_version(ctx, field)
 	if err != nil {
@@ -1774,10 +1961,10 @@ func (ec *executionContext) _Query_rooms(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Rooms(rctx, fc.Args["where"].(*model.RoomWhereClause))
+			return ec.resolvers.Query().Rooms(rctx, fc.Args["where"].(*model.RoomWhereClause), fc.Args["paginate"].(*model.PaginationInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -1794,10 +1981,10 @@ func (ec *executionContext) _Query_rooms(ctx context.Context, field graphql.Coll
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.([]*model.Room); ok {
+		if data, ok := tmp.(*model.PaginatedRoomResult); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/Thiti-Dev/scrumerization-core-service/graph/model.Room`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/Thiti-Dev/scrumerization-core-service/graph/model.PaginatedRoomResult`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1809,9 +1996,9 @@ func (ec *executionContext) _Query_rooms(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Room)
+	res := resTmp.(*model.PaginatedRoomResult)
 	fc.Result = res
-	return ec.marshalNRoom2ᚕᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐRoomᚄ(ctx, field.Selections, res)
+	return ec.marshalNPaginatedRoomResult2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐPaginatedRoomResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_rooms(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1822,24 +2009,14 @@ func (ec *executionContext) fieldContext_Query_rooms(ctx context.Context, field 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Room_id(ctx, field)
-			case "creator_id":
-				return ec.fieldContext_Room_creator_id(ctx, field)
-			case "room_name":
-				return ec.fieldContext_Room_room_name(ctx, field)
-			case "password":
-				return ec.fieldContext_Room_password(ctx, field)
-			case "is_active":
-				return ec.fieldContext_Room_is_active(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Room_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "creator":
-				return ec.fieldContext_Room_creator(ctx, field)
+			case "data":
+				return ec.fieldContext_PaginatedRoomResult_data(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_PaginatedRoomResult_totalCount(ctx, field)
+			case "count":
+				return ec.fieldContext_PaginatedRoomResult_count(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type PaginatedRoomResult", field.Name)
 		},
 	}
 	defer func() {
@@ -5684,6 +5861,40 @@ func (ec *executionContext) unmarshalInputLoginUserInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPaginationInput(ctx context.Context, obj interface{}) (model.PaginationInput, error) {
+	var it model.PaginationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"limit", "offset"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "limit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
+		case "offset":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Offset = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputRoomCreationInput(ctx context.Context, obj interface{}) (model.RoomCreationInput, error) {
 	var it model.RoomCreationInput
 	asMap := map[string]interface{}{}
@@ -5725,7 +5936,7 @@ func (ec *executionContext) unmarshalInputRoomWhereClause(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "room_name"}
+	fieldsInOrder := [...]string{"id", "room_name", "creator_id"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5746,6 +5957,13 @@ func (ec *executionContext) unmarshalInputRoomWhereClause(ctx context.Context, o
 				return it, err
 			}
 			it.RoomName = data
+		case "creator_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("creator_id"))
+			data, err := ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatorID = data
 		}
 	}
 
@@ -5940,6 +6158,55 @@ func (ec *executionContext) _OnGoingTopic(ctx context.Context, sel ast.Selection
 			}
 		case "name":
 			out.Values[i] = ec._OnGoingTopic_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var paginatedRoomResultImplementors = []string{"PaginatedRoomResult"}
+
+func (ec *executionContext) _PaginatedRoomResult(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedRoomResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedRoomResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedRoomResult")
+		case "data":
+			out.Values[i] = ec._PaginatedRoomResult_data(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalCount":
+			out.Values[i] = ec._PaginatedRoomResult_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "count":
+			out.Values[i] = ec._PaginatedRoomResult_count(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -6882,6 +7149,20 @@ func (ec *executionContext) marshalNLoginUserResponse2ᚖgithubᚗcomᚋThitiᚑ
 	return ec._LoginUserResponse(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNPaginatedRoomResult2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐPaginatedRoomResult(ctx context.Context, sel ast.SelectionSet, v model.PaginatedRoomResult) graphql.Marshaler {
+	return ec._PaginatedRoomResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPaginatedRoomResult2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐPaginatedRoomResult(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedRoomResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PaginatedRoomResult(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNPrivateVersionResponse2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐPrivateVersionResponse(ctx context.Context, sel ast.SelectionSet, v model.PrivateVersionResponse) graphql.Marshaler {
 	return ec._PrivateVersionResponse(ctx, sel, &v)
 }
@@ -7627,11 +7908,35 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalInt(*v)
+	return res
+}
+
 func (ec *executionContext) marshalOOnGoingTopic2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐOnGoingTopic(ctx context.Context, sel ast.SelectionSet, v *model.OnGoingTopic) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._OnGoingTopic(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOPaginationInput2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐPaginationInput(ctx context.Context, v interface{}) (*model.PaginationInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPaginationInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalORoomWhereClause2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐRoomWhereClause(ctx context.Context, v interface{}) (*model.RoomWhereClause, error) {

@@ -27,8 +27,7 @@ func NewRoomRepository(dbConn *sql.DB, config *utils.Config) repository.RoomRepo
 	}
 }
 
-func (repo *RoomRepository) FindAll(populateUser bool, where *model.RoomWhereClause) ([]entities.PopulatedRoom, error) {
-
+func (repo *RoomRepository) FindAll(populateUser bool, where *model.RoomWhereClause, paginate *model.PaginationInput) (entities.PaginatedRoomResult, error) {
 	var roomFromClause jet.ReadableTable
 	roomFromClause = table.Rooms
 	projectionList := []jet.Projection{}
@@ -38,25 +37,82 @@ func (repo *RoomRepository) FindAll(populateUser bool, where *model.RoomWhereCla
 	}
 
 	var whereBuilder jet.BoolExpression
-	if where.ID != nil {
-		whereBuilder = table.Rooms.ID.EQ(jet.UUID(uuid.MustParse(where.ID.String())))
-	}
-	if where.RoomName != nil {
-		if whereBuilder != nil {
-			whereBuilder = whereBuilder.AND(table.Rooms.RoomName.LIKE(jet.String(*where.RoomName)))
-		} else {
-			whereBuilder = table.Rooms.RoomName.LIKE(jet.String(*where.RoomName))
+	if where != nil {
+		if where.ID != nil {
+			whereBuilder = table.Rooms.ID.EQ(jet.UUID(uuid.MustParse(where.ID.String())))
+		}
+		if where.RoomName != nil {
+			if whereBuilder != nil {
+				whereBuilder = whereBuilder.AND(table.Rooms.RoomName.LIKE(jet.String(*where.RoomName)))
+			} else {
+				whereBuilder = table.Rooms.RoomName.LIKE(jet.String(*where.RoomName))
+			}
+		}
+		if where.CreatorID != nil {
+			if whereBuilder != nil {
+				whereBuilder = whereBuilder.AND(table.Rooms.CreatorID.EQ(jet.UUID(where.CreatorID)))
+			} else {
+				whereBuilder = table.Rooms.CreatorID.EQ(jet.UUID(where.CreatorID))
+			}
 		}
 	}
 
 	stmt := jet.SELECT(table.Rooms.AllColumns, projectionList...).FROM(roomFromClause).WHERE(whereBuilder)
-	rooms := []entities.PopulatedRoom{}
-	err := stmt.Query(repo.SqlConnection, &rooms)
-	if err != nil {
-		log.Fatal(err)
+
+	// Count is needed before the offset & limit
+	countStmt := jet.SELECT(jet.COUNT(table.Rooms.ID).AS("total_count")).FROM(roomFromClause).WHERE(whereBuilder)
+
+	if paginate != nil {
+		// If paginate is present
+		if paginate.Limit != nil {
+			// Limit
+			stmt = stmt.LIMIT(int64(*paginate.Limit))
+		}
+		if paginate.Offset != nil {
+			stmt = stmt.OFFSET(int64(*paginate.Offset))
+		}
 	}
 
-	return rooms, nil
+	countChannel := make(chan entities.PaginationResult)
+	searchResultChannel := make(chan []entities.PopulatedRoom)
+
+	// RUNNING THE THE SAME TIME
+
+	go func() {
+		// anonymous struct needed, otherwise the serialization process will not complete
+		var countingResult struct {
+			TotalCount int
+		}
+		err := countStmt.Query(repo.SqlConnection, &countingResult)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		countChannel <- entities.PaginationResult{
+			TotalCount: countingResult.TotalCount,
+		}
+	}()
+
+	go func() {
+		rooms := []entities.PopulatedRoom{}
+		err := stmt.Query(repo.SqlConnection, &rooms)
+		if err != nil {
+			log.Fatal(err)
+		}
+		searchResultChannel <- rooms
+	}()
+
+	/* -------------------------------------------------------------------------- */
+
+	countRes, roomRes := <-countChannel, <-searchResultChannel
+
+	return entities.PaginatedRoomResult{
+		Data: roomRes,
+		PaginationResult: entities.PaginationResult{
+			TotalCount: countRes.TotalCount,
+			Count:      len(roomRes),
+		},
+	}, nil
 }
 
 func (repo *RoomRepository) CreateRoom(creatorId uuid.UUID, input *model.RoomCreationInput) (*jetModel.Rooms, error) {
