@@ -57,7 +57,7 @@ func (repo *RoomRepository) FindAll(populateUser bool, where *model.RoomWhereCla
 		}
 	}
 
-	stmt := jet.SELECT(table.Rooms.AllColumns, projectionList...).FROM(roomFromClause).WHERE(whereBuilder)
+	stmt := jet.SELECT(table.Rooms.AllColumns, projectionList...).FROM(roomFromClause).WHERE(whereBuilder).ORDER_BY(table.Rooms.CreatedAt.DESC())
 
 	// Count is needed before the offset & limit
 	countStmt := jet.SELECT(jet.COUNT(table.Rooms.ID).AS("total_count")).FROM(roomFromClause).WHERE(whereBuilder)
