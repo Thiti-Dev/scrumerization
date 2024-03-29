@@ -88,7 +88,7 @@ func (r *queryResolver) Rooms(ctx context.Context, where *model.RoomWhereClause,
 }
 
 // ConnectToRoom is the resolver for the connectToRoom field.
-func (r *subscriptionResolver) ConnectToRoom(ctx context.Context, roomID uuid.UUID) (<-chan *model.RoomState, error) {
+func (r *subscriptionResolver) ConnectToRoom(ctx context.Context, roomID uuid.UUID, token string) (<-chan *model.RoomState, error) {
 	// TODO: Check if the room is really created in the database
 	//     : BACKNOTE:
 	//				 : Beforehand should call roomHub.CrateRoom(uuid.MustParse(roomID)
@@ -98,8 +98,12 @@ func (r *subscriptionResolver) ConnectToRoom(ctx context.Context, roomID uuid.UU
 	//     : return the created Channel
 	//     : otherwise giving them no right to enter error
 
-	// Check if the room has been created yet
+	payload, err := tokenizer.VerifyToken(token, []byte(r.Config.JwtSecret))
+	if err != nil {
+		return nil, fmt.Errorf("token is invalid")
+	}
 
+	// Check if the room has been created yet
 	// Check if room is existed
 	actualRoomResultFromJet, err := r.RoomRepository.FindRoomByID(roomID)
 	if err != nil {
@@ -125,15 +129,15 @@ func (r *subscriptionResolver) ConnectToRoom(ctx context.Context, roomID uuid.UU
 	}
 
 	ch := make(chan *model.RoomState)
-	mockUUID := uuid.New()
-	room.InitializeClient(mockUUID, ch) // register our channel
+	// mockUUID := uuid.New()
+	room.InitializeClient(payload.UUID, payload.Name, ch) // register our channel
 
 	go func() {
 		defer close(ch)
 		for {
 			<-ctx.Done() // Wait for context to be finished
-			fmt.Printf("client: %v disconnected from room %v\n", mockUUID, roomID)
-			go room.DisconnectClient(mockUUID)
+			fmt.Printf("client: %v disconnected from room %v\n", payload.UUID, roomID)
+			go room.DisconnectClient(payload.UUID)
 			return
 		}
 	}()

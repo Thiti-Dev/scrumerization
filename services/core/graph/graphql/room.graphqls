@@ -21,8 +21,14 @@ type OnGoingTopic{
   name: String!
 }
 
+type ClientState{
+  uuid: UUID!
+  name: String!
+  isVoted: Boolean!
+}
+
 type RoomState{
-  clients: [UUID!]!
+  clients: [ClientState!]!
   active: Boolean!
   onGoingTopic: OnGoingTopic
 
@@ -56,5 +62,5 @@ extend type Mutation {
 }
 
 extend type Subscription {
-  connectToRoom(roomID: UUID!): RoomState!  
+  connectToRoom(roomID: UUID!,token: String!): RoomState!  
 }

@@ -8,6 +8,7 @@ import (
 )
 
 type TopicRepository interface {
+	FindOneTopic(uuid uuid.UUID) (jetModel.Topics, error)
 	FindAll(where *model.TopicVoteQueryWhereClause) ([]entities.PopulatedTopicVote, error)
 	CreateTopic(input *model.CreateTopicInput) (*jetModel.Topics, error)
 	GetTopicsFromSpecificRoom(uuid uuid.UUID) ([]jetModel.Topics, error)

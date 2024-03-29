@@ -1,12 +1,16 @@
 package rooms
 
 import (
+	"fmt"
+
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 	"github.com/google/uuid"
 )
 
 type ConnectedClient struct {
 	Channel chan *model.RoomState
+	Name    string
+	IsVoted bool
 }
 
 type CurrentTopic struct {
@@ -23,10 +27,20 @@ type RoomState struct {
 func (rs *RoomState) BroadcastCurrentState() {
 	for _, client := range rs.Clients {
 		// initial emittion
-		clients := []uuid.UUID{}
+		// clients := []uuid.UUID{}
 
-		for userUUID := range rs.Clients {
-			clients = append(clients, userUUID)
+		// for userUUID := range rs.Clients {
+		// 	clients = append(clients, userUUID)
+		// }
+
+		clientStates := []*model.ClientState{}
+
+		for cuuid, client := range rs.Clients {
+			clientStates = append(clientStates, &model.ClientState{
+				UUID:    cuuid,
+				Name:    client.Name,
+				IsVoted: client.IsVoted,
+			})
 		}
 
 		var onGoingTopicData *model.OnGoingTopic
@@ -39,7 +53,7 @@ func (rs *RoomState) BroadcastCurrentState() {
 
 		client.Channel <- &model.RoomState{
 			Active:       rs.Active,
-			Clients:      clients,
+			Clients:      clientStates,
 			OnGoingTopic: onGoingTopicData,
 		}
 
@@ -52,9 +66,10 @@ func (rs *RoomState) DisconnectClient(userID uuid.UUID) {
 	go rs.BroadcastCurrentState()
 }
 
-func (rs *RoomState) InitializeClient(userID uuid.UUID, ch chan *model.RoomState) bool {
+func (rs *RoomState) InitializeClient(userID uuid.UUID, name string, ch chan *model.RoomState) bool {
 	rs.Clients[userID] = &ConnectedClient{
 		Channel: ch,
+		Name:    name,
 	}
 
 	go rs.BroadcastCurrentState() // broadcast the state to all connected client after initialization is fone
@@ -67,4 +82,23 @@ func (rs *RoomState) SetCurrentTopic(uuid uuid.UUID, name string) {
 		Name: name,
 	}
 	go rs.BroadcastCurrentState()
+}
+
+func (rs *RoomState) EmitIsVote(userID uuid.UUID, isVoted bool) {
+	// ignore isVoted for now, we only care for this call
+	client := rs.getClientFromUUID(userID)
+	if client != nil {
+		client.IsVoted = true
+	}
+	fmt.Println("asdasds")
+	go rs.BroadcastCurrentState()
+}
+
+func (rs *RoomState) getClientFromUUID(uuid uuid.UUID) *ConnectedClient {
+	client, ok := rs.Clients[uuid]
+	if !ok {
+		return nil
+	}
+
+	return client
 }

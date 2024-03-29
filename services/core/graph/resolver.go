@@ -7,6 +7,7 @@ import (
 
 	"github.com/Thiti-Dev/scrumerization-core-service/internal/domain/repositories"
 	"github.com/Thiti-Dev/scrumerization-core-service/internal/domain/rooms"
+	infraUtils "github.com/Thiti-Dev/scrumerization-core-service/internal/infrastructure/utils"
 )
 
 // This file will not be regenerated automatically.
@@ -19,4 +20,5 @@ type Resolver struct {
 	RoomRepository  repositories.RoomRepository
 	TopicRepository repositories.TopicRepository
 	RoomHub         *rooms.RoomHub
+	Config          *infraUtils.Config
 }

@@ -61,6 +61,17 @@ func (r *mutationResolver) CreateTopicVote(ctx context.Context, input *model.Cre
 		return nil, err
 	}
 
+	go func() {
+		topic, err := r.TopicRepository.FindOneTopic(input.TopicID)
+		fmt.Println(topic)
+		if err == nil {
+			room := r.RoomHub.MustGetRoomFromRoomID(topic.RoomID)
+			fmt.Println(room)
+			room.EmitIsVote(userPayload.UUID, true)
+		}
+		// room := r.MustGetRoomFromRoomID(input.)
+	}()
+
 	return &model.TopicVote{
 		TopicID:   topicVote.TopicID,
 		UserID:    topicVote.UserID,

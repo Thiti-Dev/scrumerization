@@ -46,6 +46,7 @@ func main() {
 		RoomRepository:  roomRepository,
 		RoomHub:         roomHub,
 		TopicRepository: topicRepository,
+		Config:          &config,
 	}}
 
 	wrappers.RegisterDirectives(&c, &config)

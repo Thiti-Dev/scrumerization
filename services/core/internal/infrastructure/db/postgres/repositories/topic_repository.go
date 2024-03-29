@@ -27,6 +27,15 @@ func NewTopicRepository(dbConn *sql.DB, config *utils.Config) repository.TopicRe
 	}
 }
 
+func (repo *TopicRepository) FindOneTopic(uuid uuid.UUID) (jetModel.Topics, error) {
+	stmt := jet.SELECT(table.Topics.AllColumns).FROM(table.Topics).WHERE(table.Topics.ID.EQ(jet.UUID(uuid)))
+
+	topic := jetModel.Topics{}
+	err := stmt.Query(repo.SqlConnection, &topic)
+
+	return topic, err
+}
+
 func (repo *TopicRepository) FindAll(where *model.TopicVoteQueryWhereClause) ([]entities.PopulatedTopicVote, error) {
 	stmt := jet.SELECT(table.TopicVotes.AllColumns, table.Users.AllColumns).FROM(table.TopicVotes.INNER_JOIN(
 		table.Users, table.Users.ID.EQ(table.TopicVotes.UserID),

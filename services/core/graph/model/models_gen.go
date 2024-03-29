@@ -11,6 +11,12 @@ import (
 	"github.com/google/uuid"
 )
 
+type ClientState struct {
+	UUID    uuid.UUID `json:"uuid"`
+	Name    string    `json:"name"`
+	IsVoted bool      `json:"isVoted"`
+}
+
 type CreateTopicInput struct {
 	RoomID uuid.UUID `json:"roomID"`
 	Name   string    `json:"name"`
@@ -81,9 +87,9 @@ type RoomCreationInput struct {
 }
 
 type RoomState struct {
-	Clients      []uuid.UUID   `json:"clients"`
-	Active       bool          `json:"active"`
-	OnGoingTopic *OnGoingTopic `json:"onGoingTopic,omitempty"`
+	Clients      []*ClientState `json:"clients"`
+	Active       bool           `json:"active"`
+	OnGoingTopic *OnGoingTopic  `json:"onGoingTopic,omitempty"`
 }
 
 type RoomWhereClause struct {

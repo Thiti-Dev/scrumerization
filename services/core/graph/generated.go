@@ -53,6 +53,12 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	ClientState struct {
+		IsVoted func(childComplexity int) int
+		Name    func(childComplexity int) int
+		UUID    func(childComplexity int) int
+	}
+
 	LoginUserResponse struct {
 		RefreshToken func(childComplexity int) int
 		Token        func(childComplexity int) int
@@ -110,7 +116,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		ConnectToRoom    func(childComplexity int, roomID uuid.UUID) int
+		ConnectToRoom    func(childComplexity int, roomID uuid.UUID, token string) int
 		ServerTimeStream func(childComplexity int) int
 	}
 
@@ -162,7 +168,7 @@ type QueryResolver interface {
 }
 type SubscriptionResolver interface {
 	ServerTimeStream(ctx context.Context) (<-chan *time.Time, error)
-	ConnectToRoom(ctx context.Context, roomID uuid.UUID) (<-chan *model.RoomState, error)
+	ConnectToRoom(ctx context.Context, roomID uuid.UUID, token string) (<-chan *model.RoomState, error)
 }
 
 type executableSchema struct {
@@ -183,6 +189,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "ClientState.isVoted":
+		if e.complexity.ClientState.IsVoted == nil {
+			break
+		}
+
+		return e.complexity.ClientState.IsVoted(childComplexity), true
+
+	case "ClientState.name":
+		if e.complexity.ClientState.Name == nil {
+			break
+		}
+
+		return e.complexity.ClientState.Name(childComplexity), true
+
+	case "ClientState.uuid":
+		if e.complexity.ClientState.UUID == nil {
+			break
+		}
+
+		return e.complexity.ClientState.UUID(childComplexity), true
 
 	case "LoginUserResponse.refreshToken":
 		if e.complexity.LoginUserResponse.RefreshToken == nil {
@@ -463,7 +490,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Subscription.ConnectToRoom(childComplexity, args["roomID"].(uuid.UUID)), true
+		return e.complexity.Subscription.ConnectToRoom(childComplexity, args["roomID"].(uuid.UUID), args["token"].(string)), true
 
 	case "Subscription.serverTimeStream":
 		if e.complexity.Subscription.ServerTimeStream == nil {
@@ -953,6 +980,15 @@ func (ec *executionContext) field_Subscription_connectToRoom_args(ctx context.Co
 		}
 	}
 	args["roomID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["token"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["token"] = arg1
 	return args, nil
 }
 
@@ -993,6 +1029,138 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _ClientState_uuid(ctx context.Context, field graphql.CollectedField, obj *model.ClientState) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientState_uuid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UUID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClientState_uuid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClientState",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UUID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClientState_name(ctx context.Context, field graphql.CollectedField, obj *model.ClientState) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientState_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClientState_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClientState",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ClientState_isVoted(ctx context.Context, field graphql.CollectedField, obj *model.ClientState) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ClientState_isVoted(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsVoted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ClientState_isVoted(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ClientState",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _LoginUserResponse_token(ctx context.Context, field graphql.CollectedField, obj *model.LoginUserResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LoginUserResponse_token(ctx, field)
@@ -2861,9 +3029,9 @@ func (ec *executionContext) _RoomState_clients(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]uuid.UUID)
+	res := resTmp.([]*model.ClientState)
 	fc.Result = res
-	return ec.marshalNUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, field.Selections, res)
+	return ec.marshalNClientState2ᚕᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐClientStateᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RoomState_clients(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2873,7 +3041,15 @@ func (ec *executionContext) fieldContext_RoomState_clients(ctx context.Context, 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UUID does not have child fields")
+			switch field.Name {
+			case "uuid":
+				return ec.fieldContext_ClientState_uuid(ctx, field)
+			case "name":
+				return ec.fieldContext_ClientState_name(ctx, field)
+			case "isVoted":
+				return ec.fieldContext_ClientState_isVoted(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ClientState", field.Name)
 		},
 	}
 	return fc, nil
@@ -3042,7 +3218,7 @@ func (ec *executionContext) _Subscription_connectToRoom(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().ConnectToRoom(rctx, fc.Args["roomID"].(uuid.UUID))
+		return ec.resolvers.Subscription().ConnectToRoom(rctx, fc.Args["roomID"].(uuid.UUID), fc.Args["token"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6005,6 +6181,55 @@ func (ec *executionContext) unmarshalInputTopicVoteQueryWhereClause(ctx context.
 
 // region    **************************** object.gotpl ****************************
 
+var clientStateImplementors = []string{"ClientState"}
+
+func (ec *executionContext) _ClientState(ctx context.Context, sel ast.SelectionSet, obj *model.ClientState) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, clientStateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ClientState")
+		case "uuid":
+			out.Values[i] = ec._ClientState_uuid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._ClientState_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isVoted":
+			out.Values[i] = ec._ClientState_isVoted(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var loginUserResponseImplementors = []string{"LoginUserResponse"}
 
 func (ec *executionContext) _LoginUserResponse(ctx context.Context, sel ast.SelectionSet, obj *model.LoginUserResponse) graphql.Marshaler {
@@ -7110,6 +7335,60 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNClientState2ᚕᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐClientStateᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ClientState) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNClientState2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐClientState(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNClientState2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐClientState(ctx context.Context, sel ast.SelectionSet, v *model.ClientState) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ClientState(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNCreateUserInput2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐCreateUserInput(ctx context.Context, v interface{}) (model.CreateUserInput, error) {
 	res, err := ec.unmarshalInputCreateUserInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7505,38 +7784,6 @@ func (ec *executionContext) marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, v interface{}) ([]uuid.UUID, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]uuid.UUID, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, sel ast.SelectionSet, v []uuid.UUID) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
