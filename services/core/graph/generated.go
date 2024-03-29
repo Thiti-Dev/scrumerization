@@ -93,6 +93,7 @@ type ComplexityRoot struct {
 		PrivateVersion func(childComplexity int) int
 		Roles          func(childComplexity int) int
 		Rooms          func(childComplexity int, where *model.RoomWhereClause, paginate *model.PaginationInput) int
+		Topic          func(childComplexity int, topicID uuid.UUID, password *string) int
 		TopicVotes     func(childComplexity int, where *model.TopicVoteQueryWhereClause) int
 		Topics         func(childComplexity int, roomID uuid.UUID, password *string) int
 		Users          func(childComplexity int) int
@@ -161,6 +162,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Roles(ctx context.Context) ([]model.Role, error)
 	Rooms(ctx context.Context, where *model.RoomWhereClause, paginate *model.PaginationInput) (*model.PaginatedRoomResult, error)
+	Topic(ctx context.Context, topicID uuid.UUID, password *string) (*model.Topic, error)
 	Topics(ctx context.Context, roomID uuid.UUID, password *string) ([]*model.Topic, error)
 	TopicVotes(ctx context.Context, where *model.TopicVoteQueryWhereClause) ([]*model.TopicVote, error)
 	Users(ctx context.Context) ([]*model.User, error)
@@ -371,6 +373,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Rooms(childComplexity, args["where"].(*model.RoomWhereClause), args["paginate"].(*model.PaginationInput)), true
+
+	case "Query.topic":
+		if e.complexity.Query.Topic == nil {
+			break
+		}
+
+		args, err := ec.field_Query_topic_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Topic(childComplexity, args["topicID"].(uuid.UUID), args["password"].(*string)), true
 
 	case "Query.topicVotes":
 		if e.complexity.Query.TopicVotes == nil {
@@ -941,6 +955,30 @@ func (ec *executionContext) field_Query_topicVotes_args(ctx context.Context, raw
 		}
 	}
 	args["where"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_topic_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uuid.UUID
+	if tmp, ok := rawArgs["topicID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("topicID"))
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["topicID"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["password"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg1
 	return args, nil
 }
 
@@ -2195,6 +2233,98 @@ func (ec *executionContext) fieldContext_Query_rooms(ctx context.Context, field 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_rooms_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_topic(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_topic(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Topic(rctx, fc.Args["topicID"].(uuid.UUID), fc.Args["password"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.RequiredMember == nil {
+				return nil, errors.New("directive requiredMember is not implemented")
+			}
+			return ec.directives.RequiredMember(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Topic); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/Thiti-Dev/scrumerization-core-service/graph/model.Topic`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Topic)
+	fc.Result = res
+	return ec.marshalOTopic2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐTopic(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_topic(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Topic_id(ctx, field)
+			case "roomID":
+				return ec.fieldContext_Topic_roomID(ctx, field)
+			case "name":
+				return ec.fieldContext_Topic_name(ctx, field)
+			case "avgScore":
+				return ec.fieldContext_Topic_avgScore(ctx, field)
+			case "isActive":
+				return ec.fieldContext_Topic_isActive(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Topic_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Topic_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Topic", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_topic_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6560,6 +6690,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "topic":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_topic(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "topics":
 			field := field
 
@@ -8208,6 +8357,13 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOTopic2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐTopic(ctx context.Context, sel ast.SelectionSet, v *model.Topic) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Topic(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOTopicVoteQueryWhereClause2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐTopicVoteQueryWhereClause(ctx context.Context, v interface{}) (*model.TopicVoteQueryWhereClause, error) {

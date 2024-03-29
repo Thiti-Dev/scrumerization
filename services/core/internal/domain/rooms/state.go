@@ -1,8 +1,6 @@
 package rooms
 
 import (
-	"fmt"
-
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 	"github.com/google/uuid"
 )
@@ -90,7 +88,6 @@ func (rs *RoomState) EmitIsVote(userID uuid.UUID, isVoted bool) {
 	if client != nil {
 		client.IsVoted = true
 	}
-	fmt.Println("asdasds")
 	go rs.BroadcastCurrentState()
 }
 

@@ -42,6 +42,7 @@ input TopicVoteQueryWhereClause{
 #/* -------------------------------------------------------------------------- */
 
 extend type Query {
+    topic(topicID: UUID!,password: String): Topic @requiredMember(role: USER)
     topics(roomID: UUID!,password: String): [Topic!]! @requiredMember(role: USER)# View topics in specific room
     topicVotes(where: TopicVoteQueryWhereClause): [TopicVote!]! @requiredMember(role: USER)
 }

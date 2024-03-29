@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 	context_type "github.com/Thiti-Dev/scrumerization-core-service/internal/domain/context"
@@ -63,10 +64,8 @@ func (r *mutationResolver) CreateTopicVote(ctx context.Context, input *model.Cre
 
 	go func() {
 		topic, err := r.TopicRepository.FindOneTopic(input.TopicID)
-		fmt.Println(topic)
 		if err == nil {
 			room := r.RoomHub.MustGetRoomFromRoomID(topic.RoomID)
-			fmt.Println(room)
 			room.EmitIsVote(userPayload.UUID, true)
 		}
 		// room := r.MustGetRoomFromRoomID(input.)
@@ -85,6 +84,27 @@ func (r *mutationResolver) CreateTopicVote(ctx context.Context, input *model.Cre
 // TerminateTopic is the resolver for the terminateTopic field.
 func (r *mutationResolver) TerminateTopic(ctx context.Context, topicID uuid.UUID) (bool, error) {
 	return r.TopicRepository.TerminateTopic(topicID)
+}
+
+// Topic is the resolver for the topic field.
+func (r *queryResolver) Topic(ctx context.Context, topicID uuid.UUID, password *string) (*model.Topic, error) {
+	topic, err := r.TopicRepository.FindOneTopic(topicID)
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows") {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &model.Topic{
+		ID:        topic.ID,
+		RoomID:    topic.RoomID,
+		Name:      topic.Name,
+		AvgScore:  topic.AvgScore,
+		IsActive:  topic.IsActive,
+		CreatedAt: topic.CreatedAt,
+		UpdatedAt: topic.UpdatedAt,
+	}, nil
 }
 
 // Topics is the resolver for the topics field.
