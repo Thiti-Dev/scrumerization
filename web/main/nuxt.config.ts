@@ -1,15 +1,17 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: [
-    '@nuxtjs/tailwindcss',
-    '@nuxtjs/apollo'
-  ],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/apollo', ["@pinia/nuxt",{autoImports: ["defineStore", "acceptHMRUpdate"],}]],
   apollo: {
     clients: {
       default: {
-        httpEndpoint: 'http://localhost:8080/query'
+        httpEndpoint: 'http://localhost:8080/query',
+        wsEndpoint: 'ws://localhost:8080/query'
       }
     },
+  },
+  routeRules: {
+    '/app': {ssr: false},
+    '/app/room/**' : {ssr:false}
   }
 })

@@ -1,0 +1,213 @@
+<template>
+    <div>
+        <div :class="{'opacity-50': isCreationPanelOpened}" class="px-24 h-screen flex flex-col justify-center">
+            <div class="mt-2 flex flex-row justify-end">
+                <button @click="isCreationPanelOpened = true" type="button" class="text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Create room</button>
+            </div>
+            <div class="relative overflow-x-auto shadow-md">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">
+                                Room
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                Password
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                Created Date
+                            </th>
+                            <th scope="col" class="px-6 py-3">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="room of result?.rooms.data" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ room.room_name }}
+                            </th>
+                            <td class="px-6 py-4">
+                                {{ room.password ?? 'No-password' }}
+                            </td>
+                            <td class="px-6 py-4">
+                                {{ new Date(room.createdAt).toISOString().substring(0, 10) }}
+                            </td>
+                            <td>
+                                <a @click="enterRoom(room.id)" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Enter</a>
+                                <a @click="copyLink(room.id)" class="pl-5 font-medium text-blue-600 dark:text-blue-500 hover:underline">Copy link</a>
+                            </td>
+                        </tr>
+                        <tr v-for="_ of Array.from(Array(10-(result?.rooms.count || 0)))" class="border-b bg-gray-800 border-gray-700 h-12">
+                            <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            </th>
+                            <td class="px-6 py-4">
+                            </td>
+                            <td class="px-6 py-4">
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex flex-col items-center bg-gray-700 rounded-lg rounded-t-none">
+                <!-- Help text -->
+                <span class="text-sm text-gray-700 dark:text-gray-400">
+                    Showing <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage * pageLimit)+1  }}</span> to <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage * pageLimit) + result?.rooms.count! }}</span> of <span class="font-semibold text-gray-900 dark:text-white">{{ result?.rooms.totalCount }}</span> Entries
+                </span>
+                <!-- Buttons -->
+                <div class="inline-flex mt-2 xs:mt-0">
+                    <button @click="pageChange('decrement')" class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                        Prev
+                    </button>
+                    <button @click="pageChange('increment')" class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-800 border-0 border-s border-gray-700 rounded-e hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                        Next
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="static-modal" :class="{hidden: !isCreationPanelOpened}" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-screen h-screen md:inset-0">
+            <div class="relative p-4 w-full max-w-2xl max-h-full">
+                <!-- Modal content -->
+                <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                    <!-- Modal header -->
+                    <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                            Room creation
+                        </h3>
+                        <button @click="isCreationPanelOpened = false" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="static-modal">
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                    </div>
+                    <!-- Modal body -->
+                    <form class="max-w-sm mx-auto" @submit.prevent="onCreateRoomSubmit">
+                        <div class="p-4 md:p-5 space-y-4">
+                                <div class="mb-5">
+                                    <label for="room-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span class="text-red-500">*</span>Room name</label>
+                                    <input v-model="roomFormData.name" type="text" id="room-name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="eg. SprintPlanning 1" required />
+                                </div>
+                                <div class="mb-5">
+                                    <label for="room-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Room password</label>
+                                    <input v-model="roomFormData.password" type="password" id="room-password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="*********"/>
+                                </div>
+                        </div>
+                        <!-- Modal footer -->
+                        <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
+                            <button type="submit" data-modal-hide="static-modal" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Create room</button>
+                            <button @click="isCreationPanelOpened = false" data-modal-hide="static-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Cancel</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+    definePageMeta({
+        middleware: ["auth"]
+    })
+
+    import { useQuery } from '@vue/apollo-composable';
+    import {graphql} from "../../.gen/gql"
+    import { computed, watchEffect } from 'vue';
+    import { useAuthStore } from '~/stores/auth';
+
+    function copyLink(link:string){
+        navigator.clipboard.writeText(link);
+    }
+
+    function enterRoom(roomID: string){
+        navigateTo("/app/room/"+ roomID)
+    }
+
+    function pageChange(type: 'increment'|'decrement'){
+        if(!result.value) return
+        if(type === 'increment'){
+            // const maxPage = result.value.rooms.totalCount / pageLimit
+            // if(currentPage.value > maxPage - 2) return // -2 because currentPage start at 0
+            if ((currentPage.value * pageLimit) + result.value.rooms.count >= result.value.rooms.totalCount) return
+            currentPage.value++;
+        }else{
+            if(currentPage.value === 0) return // basically === 0
+            currentPage.value--;
+        }
+    }
+
+    async function onCreateRoomSubmit(){
+        const {name,password} = roomFormData.value
+        try{
+            await createRoom({input:{name,password: password || undefined }})
+            // creation succeed
+            currentPage.value = 0; // triggering side-effect of watch # it got cached so have to call restart right after
+            restart()
+            isCreationPanelOpened.value = false // closing modal
+        }
+        catch(e:any){
+            console.log(JSON.stringify(e))
+        }
+    }
+
+    const pageLimit = 10
+    const currentPage = ref(0)
+    const isCreationPanelOpened = ref(false)
+    const roomFormData = ref({
+        name: '',
+        password: ''
+    })
+
+    const authStore = useAuthStore()
+    
+    const {result,error,refetch,restart} = useQuery(
+        graphql(`
+            query listCreatedRooms($where: RoomWhereClause!,$paginate: PaginationInput){
+                rooms(where: $where,paginate:$paginate){
+                    data {
+                        id
+                    room_name
+                    password
+                    is_active
+                    createdAt
+                    updatedAt
+                        }
+                    totalCount
+                    count
+                }
+            }
+        `),{where:{creator_id:authStore.userID},paginate:{limit:pageLimit,offset: currentPage.value * pageLimit}}
+    ,{fetchPolicy:'no-cache',context:{headers: {
+        "Authorization": localStorage.getItem("token")
+    }}})
+
+    const {mutate: createRoom} = useMutation(
+        graphql(`
+            mutation createRoom($input: RoomCreationInput!){
+                createRoom(input: $input){
+                id
+                room_name
+                password
+                is_active
+            }
+            }        
+        `),{context:{
+            headers:{
+                "Authorization": localStorage.getItem("token")
+            }
+        }}
+    )
+
+    watch(currentPage, (newPage,_) => {
+        refetch({where:{creator_id:authStore.userID},paginate:{limit:pageLimit,offset: newPage * pageLimit}})
+    })
+
+    watchEffect(() => {
+        if(error.value?.graphQLErrors[0].extensions.code === 'Authentication'){
+            navigateTo("/login")
+        }
+    })
+</script>
