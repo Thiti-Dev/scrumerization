@@ -6,9 +6,11 @@ import (
 )
 
 type ConnectedClient struct {
-	Channel chan *model.RoomState
-	Name    string
-	IsVoted bool
+	Channel    chan *model.RoomState
+	Name       string
+	IsVoted    bool
+	GivenPoint int8
+	GivenDesc  *string
 }
 
 type CurrentTopic struct {
@@ -82,11 +84,18 @@ func (rs *RoomState) SetCurrentTopic(uuid uuid.UUID, name string) {
 	go rs.BroadcastCurrentState()
 }
 
-func (rs *RoomState) EmitIsVote(userID uuid.UUID, isVoted bool) {
+func (rs *RoomState) SetCurrentTopicToNull() {
+	rs.CurrentTopic = nil
+	go rs.BroadcastCurrentState()
+}
+
+func (rs *RoomState) EmitIsVote(userID uuid.UUID, point int8, description *string) {
 	// ignore isVoted for now, we only care for this call
 	client := rs.getClientFromUUID(userID)
 	if client != nil {
 		client.IsVoted = true
+		client.GivenPoint = point
+		client.GivenDesc = description
 	}
 	go rs.BroadcastCurrentState()
 }

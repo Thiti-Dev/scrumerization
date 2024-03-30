@@ -133,6 +133,11 @@ type User struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+type VoteInput struct {
+	Point       int     `json:"point"`
+	Description *string `json:"description,omitempty"`
+}
+
 type Role string
 
 const (

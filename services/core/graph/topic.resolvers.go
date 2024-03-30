@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 	context_type "github.com/Thiti-Dev/scrumerization-core-service/internal/domain/context"
@@ -62,14 +63,14 @@ func (r *mutationResolver) CreateTopicVote(ctx context.Context, input *model.Cre
 		return nil, err
 	}
 
-	go func() {
-		topic, err := r.TopicRepository.FindOneTopic(input.TopicID)
-		if err == nil {
-			room := r.RoomHub.MustGetRoomFromRoomID(topic.RoomID)
-			room.EmitIsVote(userPayload.UUID, true)
-		}
-		// room := r.MustGetRoomFromRoomID(input.)
-	}()
+	// go func() {
+	// 	topic, err := r.TopicRepository.FindOneTopic(input.TopicID)
+	// 	if err == nil {
+	// 		room := r.RoomHub.MustGetRoomFromRoomID(topic.RoomID)
+	// 		room.EmitIsVote(userPayload.UUID, true)
+	// 	}
+	// 	// room := r.MustGetRoomFromRoomID(input.)
+	// }()
 
 	return &model.TopicVote{
 		TopicID:   topicVote.TopicID,
@@ -83,7 +84,101 @@ func (r *mutationResolver) CreateTopicVote(ctx context.Context, input *model.Cre
 
 // TerminateTopic is the resolver for the terminateTopic field.
 func (r *mutationResolver) TerminateTopic(ctx context.Context, topicID uuid.UUID) (bool, error) {
-	return r.TopicRepository.TerminateTopic(topicID)
+	topic, err := r.TopicRepository.FindOneTopic(topicID) // check if the topic is indeed existed
+	if err != nil {
+		return false, err
+	}
+
+	_, err = r.TopicRepository.TerminateTopic(topicID)
+	if err != nil {
+		return false, err
+	}
+
+	room := r.RoomHub.MustGetRoomFromRoomID(topic.RoomID)
+
+	var wg sync.WaitGroup
+
+	for uuid, client := range room.Clients {
+		fmt.Println(uuid)
+		wg.Add(1)
+		userID := uuid
+		givenPoint := int(client.GivenPoint)
+		givenDesc := client.GivenDesc
+		go func() {
+			defer wg.Done()
+			r.TopicRepository.CreateTopicVote(userID, &model.CreateTopicVoteInput{
+				TopicID:   topicID,
+				Voted:     givenPoint,
+				VotedDesc: givenDesc,
+			})
+		}()
+	}
+
+	wg.Wait() // wait all pending votes to be created on actual db
+
+	room.SetCurrentTopicToNull()
+
+	return true, nil // return the result
+}
+
+// Vote is the resolver for the vote field.
+func (r *mutationResolver) Vote(ctx context.Context, topicID uuid.UUID, input model.VoteInput) (bool, error) {
+	// This method will not do any repository action
+	// Only emit the state to the server
+
+	userPayload := ctx.Value(context_type.UserDataCtxKey).(*tokenizer.Payload)
+
+	topic, err := r.TopicRepository.FindOneTopic(topicID) // check if the topic is indeed existed
+	if err != nil {
+		return false, err
+	}
+
+	room := r.RoomHub.MustGetRoomFromRoomID(topic.RoomID)
+	room.EmitIsVote(userPayload.UUID, int8(input.Point), input.Description)
+
+	/* ---------------------------- TOPIC TERMINATION --------------------------- */
+
+	shouldTerminate := true
+	for _, client := range room.Clients {
+		if !client.IsVoted {
+			shouldTerminate = false
+			break
+		}
+	}
+
+	if shouldTerminate {
+		fmt.Printf("Topic:%v should be terminated\n", topicID)
+		go func() {
+			r.TopicRepository.TerminateTopic(topicID) // later on should push this task to message-broker, to be consistent
+
+			var wg sync.WaitGroup
+
+			for uuid, client := range room.Clients {
+				fmt.Println(uuid)
+				wg.Add(1)
+				userID := uuid
+				givenPoint := int(client.GivenPoint)
+				givenDesc := client.GivenDesc
+				go func() {
+					defer wg.Done()
+					r.TopicRepository.CreateTopicVote(userID, &model.CreateTopicVoteInput{
+						TopicID:   topicID,
+						Voted:     givenPoint,
+						VotedDesc: givenDesc,
+					})
+				}()
+			}
+
+			wg.Wait() // wait all pending votes to be created on actual db
+
+			room.SetCurrentTopicToNull()
+
+		}()
+	}
+
+	/* -------------------------------------------------------------------------- */
+
+	return true, nil
 }
 
 // Topic is the resolver for the topic field.

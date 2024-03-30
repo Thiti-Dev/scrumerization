@@ -6,9 +6,12 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/websocket"
 	_ "github.com/lib/pq"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/Thiti-Dev/scrumerization-core-service/cmd/scrumerization/wrappers"
 	"github.com/Thiti-Dev/scrumerization-core-service/cmd/scrumerization/wrappers/middlewares"
@@ -64,7 +67,20 @@ func main() {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}).Handler)
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(c))
+	// srv := handler.NewDefaultServer(graph.NewExecutableSchema(c))
+	srv := handler.New(graph.NewExecutableSchema(c)) // calling new instead of NewDefaultServer because we need more granular control of each Transportation
+	srv.AddTransport(transport.Options{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.POST{})
+	srv.Use(extension.Introspection{}) // for types inspect
+
+	srv.AddTransport(&transport.Websocket{
+		Upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
+	})
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", middlewares.AuthHandlerForGraphql(srv))

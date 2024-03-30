@@ -72,6 +72,7 @@ type ComplexityRoot struct {
 		CreateUser      func(childComplexity int, input model.CreateUserInput) int
 		LoginUser       func(childComplexity int, input model.LoginUserInput) int
 		TerminateTopic  func(childComplexity int, topicID uuid.UUID) int
+		Vote            func(childComplexity int, topicID uuid.UUID, input model.VoteInput) int
 	}
 
 	OnGoingTopic struct {
@@ -156,6 +157,7 @@ type MutationResolver interface {
 	CreateTopic(ctx context.Context, input *model.CreateTopicInput) (*model.Topic, error)
 	CreateTopicVote(ctx context.Context, input *model.CreateTopicVoteInput) (*model.TopicVote, error)
 	TerminateTopic(ctx context.Context, topicID uuid.UUID) (bool, error)
+	Vote(ctx context.Context, topicID uuid.UUID, input model.VoteInput) (bool, error)
 	CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error)
 	LoginUser(ctx context.Context, input model.LoginUserInput) (*model.LoginUserResponse, error)
 }
@@ -305,6 +307,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.TerminateTopic(childComplexity, args["topicID"].(uuid.UUID)), true
+
+	case "Mutation.vote":
+		if e.complexity.Mutation.Vote == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_vote_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Vote(childComplexity, args["topicID"].(uuid.UUID), args["input"].(model.VoteInput)), true
 
 	case "OnGoingTopic.id":
 		if e.complexity.OnGoingTopic.ID == nil {
@@ -662,6 +676,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputRoomCreationInput,
 		ec.unmarshalInputRoomWhereClause,
 		ec.unmarshalInputTopicVoteQueryWhereClause,
+		ec.unmarshalInputVoteInput,
 	)
 	first := true
 
@@ -901,6 +916,30 @@ func (ec *executionContext) field_Mutation_terminateTopic_args(ctx context.Conte
 		}
 	}
 	args["topicID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_vote_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uuid.UUID
+	if tmp, ok := rawArgs["topicID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("topicID"))
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["topicID"] = arg0
+	var arg1 model.VoteInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNVoteInput2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐVoteInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -1692,6 +1731,85 @@ func (ec *executionContext) fieldContext_Mutation_terminateTopic(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_terminateTopic_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_vote(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_vote(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().Vote(rctx, fc.Args["topicID"].(uuid.UUID), fc.Args["input"].(model.VoteInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.RequiredMember == nil {
+				return nil, errors.New("directive requiredMember is not implemented")
+			}
+			return ec.directives.RequiredMember(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_vote(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_vote_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6303,6 +6421,40 @@ func (ec *executionContext) unmarshalInputTopicVoteQueryWhereClause(ctx context.
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputVoteInput(ctx context.Context, obj interface{}) (model.VoteInput, error) {
+	var it model.VoteInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"point", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "point":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("point"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Point = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -6454,6 +6606,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "terminateTopic":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_terminateTopic(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "vote":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_vote(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -7991,6 +8150,11 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumer
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNVoteInput2githubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐVoteInput(ctx context.Context, v interface{}) (model.VoteInput, error) {
+	res, err := ec.unmarshalInputVoteInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

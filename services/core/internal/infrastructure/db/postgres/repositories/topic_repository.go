@@ -70,7 +70,7 @@ func (repo *TopicRepository) CreateTopic(input *model.CreateTopicInput) (*jetMod
 }
 
 func (repo *TopicRepository) GetTopicsFromSpecificRoom(uuid uuid.UUID) ([]jetModel.Topics, error) {
-	stmt := table.Topics.SELECT(table.Topics.AllColumns).FROM(table.Topics).WHERE(table.Topics.RoomID.EQ(jet.UUID(uuid)))
+	stmt := table.Topics.SELECT(table.Topics.AllColumns).FROM(table.Topics).WHERE(table.Topics.RoomID.EQ(jet.UUID(uuid))).ORDER_BY(table.Topics.CreatedAt.DESC())
 	topics := []jetModel.Topics{}
 	err := stmt.Query(repo.SqlConnection, &topics)
 

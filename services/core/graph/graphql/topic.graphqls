@@ -27,6 +27,10 @@ input CreateTopicInput{
     roomID: UUID!
     name: String!
 }
+input VoteInput{
+    point: Int!
+    description: String
+}
 input CreateTopicVoteInput{
     topicID: UUID!
     voted: Int!
@@ -51,4 +55,6 @@ extend type Mutation {
     createTopic(input: CreateTopicInput): Topic! @requiredMember(role: USER)
     createTopicVote(input: CreateTopicVoteInput): TopicVote! @requiredMember(role: USER)
     terminateTopic(topicID: UUID!): Boolean! @requiredMember(role: USER)
+    vote(topicID: UUID!,input: VoteInput!): Boolean! @requiredMember(role: USER)
+
 }
