@@ -24,6 +24,7 @@ export default defineNuxtRouteMiddleware(to => {
       const authStore = useAuthStore()
       authStore.userID = decoded.uuid
       authStore.username = decoded.username
+      authStore.setAuthenticationStatus(true)
     }catch{
       // failed to decode
       return navigateTo("/login")

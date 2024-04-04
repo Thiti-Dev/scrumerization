@@ -24,7 +24,7 @@ export default {
     'Segoe UI Emoji', 
     'Segoe UI Symbol', 
     'Noto Color Emoji'
-  ],
+    ],
       'sans': [
     'Inter', 
     'ui-sans-serif', 
@@ -41,7 +41,8 @@ export default {
     'Segoe UI Emoji', 
     'Segoe UI Symbol', 
     'Noto Color Emoji'
-  ]
+    ],
+    'workbench': ['Workbench', 'sans-serif']
     }
   },
   plugins: [],

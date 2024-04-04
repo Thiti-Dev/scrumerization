@@ -33,6 +33,10 @@
 </template>
 
 <script setup lang="ts">
+    definePageMeta({
+        layout: false,
+    })
+
     import { ref, watch, watchEffect } from 'vue';
     import { useMutation } from '@vue/apollo-composable'
     import {graphql} from "../../.gen/gql"
