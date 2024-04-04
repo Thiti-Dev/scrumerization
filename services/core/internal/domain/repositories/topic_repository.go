@@ -14,4 +14,5 @@ type TopicRepository interface {
 	GetTopicsFromSpecificRoom(uuid uuid.UUID) ([]jetModel.Topics, error)
 	CreateTopicVote(userID uuid.UUID, input *model.CreateTopicVoteInput) (*jetModel.TopicVotes, error)
 	TerminateTopic(topicID uuid.UUID) (bool, error)
+	UpdateTopicAverageScore(topicID uuid.UUID, avg float32) bool
 }

@@ -96,3 +96,10 @@ func (repo *TopicRepository) TerminateTopic(topicID uuid.UUID) (bool, error) {
 	_, err := stmt.Exec(repo.SqlConnection)
 	return err == nil, err
 }
+
+func (repo *TopicRepository) UpdateTopicAverageScore(topicID uuid.UUID, avg float32) bool {
+	stmt := table.Topics.UPDATE(table.Topics.AvgScore).SET(avg).WHERE(table.Topics.ID.EQ(jet.UUID(topicID)))
+	_, err := stmt.Exec(repo.SqlConnection)
+
+	return err == nil
+}

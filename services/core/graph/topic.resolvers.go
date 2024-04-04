@@ -98,12 +98,14 @@ func (r *mutationResolver) TerminateTopic(ctx context.Context, topicID uuid.UUID
 
 	var wg sync.WaitGroup
 
+	score := 0
 	for uuid, client := range room.Clients {
 		fmt.Println(uuid)
 		wg.Add(1)
 		userID := uuid
 		givenPoint := int(client.GivenPoint)
 		givenDesc := client.GivenDesc
+		score = score + givenPoint
 		go func() {
 			defer wg.Done()
 			r.TopicRepository.CreateTopicVote(userID, &model.CreateTopicVoteInput{
@@ -113,6 +115,8 @@ func (r *mutationResolver) TerminateTopic(ctx context.Context, topicID uuid.UUID
 			})
 		}()
 	}
+	averageScore := float32(score) / float32(len(room.Clients))
+	go r.TopicRepository.UpdateTopicAverageScore(topicID, averageScore)
 
 	wg.Wait() // wait all pending votes to be created on actual db
 
@@ -153,12 +157,14 @@ func (r *mutationResolver) Vote(ctx context.Context, topicID uuid.UUID, input mo
 
 			var wg sync.WaitGroup
 
+			score := 0
 			for uuid, client := range room.Clients {
 				fmt.Println(uuid)
 				wg.Add(1)
 				userID := uuid
 				givenPoint := int(client.GivenPoint)
 				givenDesc := client.GivenDesc
+				score = score + givenPoint
 				go func() {
 					defer wg.Done()
 					r.TopicRepository.CreateTopicVote(userID, &model.CreateTopicVoteInput{
@@ -168,6 +174,9 @@ func (r *mutationResolver) Vote(ctx context.Context, topicID uuid.UUID, input mo
 					})
 				}()
 			}
+
+			averageScore := float32(score) / float32(len(room.Clients))
+			go r.TopicRepository.UpdateTopicAverageScore(topicID, averageScore)
 
 			wg.Wait() // wait all pending votes to be created on actual db
 
