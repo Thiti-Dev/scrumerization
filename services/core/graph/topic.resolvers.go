@@ -41,7 +41,7 @@ func (r *mutationResolver) CreateTopic(ctx context.Context, input *model.CreateT
 	// Set the current Topic
 	go func() {
 		room := r.RoomHub.MustGetRoomFromRoomID(input.RoomID)
-		room.SetCurrentTopic(topic.ID, topic.Name)
+		room.SetCurrentTopic(topic)
 	}()
 
 	return &model.Topic{

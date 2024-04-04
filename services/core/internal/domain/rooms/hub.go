@@ -3,6 +3,7 @@ package rooms
 import (
 	"fmt"
 
+	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 	"github.com/google/uuid"
 )
 
@@ -23,8 +24,10 @@ func (hub *RoomHub) CrateRoom(roomID uuid.UUID) (*RoomState, error) {
 
 	// ch := make(chan *RoomState)
 	roomState := &RoomState{
-		Active:  true,
-		Clients: make(map[uuid.UUID]*ConnectedClient),
+		Active:         true,
+		Clients:        make(map[uuid.UUID]*ConnectedClient),
+		TopicListeners: []chan *model.Topic{},
+		RoomID:         roomID,
 	}
 	hub.roomStateByRoomId[roomID] = roomState
 
@@ -48,7 +51,7 @@ func (hub *RoomHub) MustGetRoomFromRoomID(roomID uuid.UUID) *RoomState {
 		return hub.roomStateByRoomId[roomID]
 	}
 	// create one
-	createdRoom, _ := hub.CrateRoom(roomID) // No need to check for error as this would always success
+	createdRoom, _ := hub.CrateRoom(roomID) // No need to check for error as this would always be successful
 	return createdRoom
 }
 

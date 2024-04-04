@@ -1,6 +1,7 @@
 package rooms
 
 import (
+	jetModel "github.com/Thiti-Dev/scrumerization-core-service/.gen/scrumerization/public/model"
 	"github.com/Thiti-Dev/scrumerization-core-service/graph/model"
 	"github.com/google/uuid"
 )
@@ -19,9 +20,11 @@ type CurrentTopic struct {
 }
 
 type RoomState struct {
-	Active       bool
-	Clients      map[uuid.UUID]*ConnectedClient
-	CurrentTopic *CurrentTopic
+	RoomID         uuid.UUID
+	Active         bool
+	Clients        map[uuid.UUID]*ConnectedClient
+	TopicListeners []chan *model.Topic
+	CurrentTopic   *CurrentTopic
 }
 
 func (rs *RoomState) BroadcastCurrentState() {
@@ -61,6 +64,20 @@ func (rs *RoomState) BroadcastCurrentState() {
 	}
 }
 
+func (rs *RoomState) broadCastNewlyAddedTopic(topic *jetModel.Topics) {
+	for _, ch := range rs.TopicListeners {
+		ch <- &model.Topic{
+			ID:        topic.ID,
+			RoomID:    rs.RoomID,
+			Name:      topic.Name,
+			AvgScore:  topic.AvgScore,
+			IsActive:  topic.IsActive,
+			CreatedAt: topic.CreatedAt,
+			UpdatedAt: topic.UpdatedAt,
+		}
+	}
+}
+
 func (rs *RoomState) DisconnectClient(userID uuid.UUID) {
 	delete(rs.Clients, userID) // remove user out
 	go rs.BroadcastCurrentState()
@@ -76,12 +93,14 @@ func (rs *RoomState) InitializeClient(userID uuid.UUID, name string, ch chan *mo
 	return true
 }
 
-func (rs *RoomState) SetCurrentTopic(uuid uuid.UUID, name string) {
-	rs.CurrentTopic = &CurrentTopic{
-		ID:   uuid,
-		Name: name,
+func (rs *RoomState) SetCurrentTopic(topic *jetModel.Topics) {
+	onGoingTopic := &CurrentTopic{
+		ID:   topic.ID,
+		Name: topic.Name,
 	}
+	rs.CurrentTopic = onGoingTopic
 	go rs.BroadcastCurrentState()
+	go rs.broadCastNewlyAddedTopic(topic)
 }
 
 func (rs *RoomState) SetCurrentTopicToNull() {
@@ -107,4 +126,17 @@ func (rs *RoomState) getClientFromUUID(uuid uuid.UUID) *ConnectedClient {
 	}
 
 	return client
+}
+
+func (rs *RoomState) AddNewTopicListener(ch chan *model.Topic) {
+	rs.TopicListeners = append(rs.TopicListeners, ch)
+}
+
+func (rs *RoomState) RemoveTopicListener(ch chan *model.Topic) {
+	for i, v := range rs.TopicListeners {
+		if v == ch { // chan is reference type -> 0x140002a20c0
+			rs.TopicListeners = append(rs.TopicListeners[:i], rs.TopicListeners[i+1:]...)
+			break
+		}
+	}
 }

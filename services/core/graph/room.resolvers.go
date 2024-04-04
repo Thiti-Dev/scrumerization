@@ -144,3 +144,23 @@ func (r *subscriptionResolver) ConnectToRoom(ctx context.Context, roomID uuid.UU
 
 	return ch, nil
 }
+
+// ListenForNewCreatedTopic is the resolver for the listenForNewCreatedTopic field.
+func (r *subscriptionResolver) ListenForNewCreatedTopic(ctx context.Context, roomID uuid.UUID) (<-chan *model.Topic, error) {
+	ch := make(chan *model.Topic)
+
+	room := r.RoomHub.MustGetRoomFromRoomID(roomID)
+	room.AddNewTopicListener(ch)
+
+	go func() {
+		defer close(ch)
+		ch <- nil
+		for {
+			<-ctx.Done() // Wait for context to be finished
+			room.RemoveTopicListener(ch)
+			return
+		}
+	}()
+
+	return ch, nil
+}

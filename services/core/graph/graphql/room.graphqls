@@ -62,5 +62,6 @@ extend type Mutation {
 }
 
 extend type Subscription {
-  connectToRoom(roomID: UUID!,token: String!): RoomState!  
+  connectToRoom(roomID: UUID!,token: String!): RoomState! # renaming this later or considering move it into topic schema
+  listenForNewCreatedTopic(roomID: UUID!): Topic
 }

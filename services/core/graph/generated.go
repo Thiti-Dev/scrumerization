@@ -118,8 +118,9 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		ConnectToRoom    func(childComplexity int, roomID uuid.UUID, token string) int
-		ServerTimeStream func(childComplexity int) int
+		ConnectToRoom            func(childComplexity int, roomID uuid.UUID, token string) int
+		ListenForNewCreatedTopic func(childComplexity int, roomID uuid.UUID) int
+		ServerTimeStream         func(childComplexity int) int
 	}
 
 	Topic struct {
@@ -173,6 +174,7 @@ type QueryResolver interface {
 type SubscriptionResolver interface {
 	ServerTimeStream(ctx context.Context) (<-chan *time.Time, error)
 	ConnectToRoom(ctx context.Context, roomID uuid.UUID, token string) (<-chan *model.RoomState, error)
+	ListenForNewCreatedTopic(ctx context.Context, roomID uuid.UUID) (<-chan *model.Topic, error)
 }
 
 type executableSchema struct {
@@ -519,6 +521,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Subscription.ConnectToRoom(childComplexity, args["roomID"].(uuid.UUID), args["token"].(string)), true
+
+	case "Subscription.listenForNewCreatedTopic":
+		if e.complexity.Subscription.ListenForNewCreatedTopic == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_listenForNewCreatedTopic_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.ListenForNewCreatedTopic(childComplexity, args["roomID"].(uuid.UUID)), true
 
 	case "Subscription.serverTimeStream":
 		if e.complexity.Subscription.ServerTimeStream == nil {
@@ -1066,6 +1080,21 @@ func (ec *executionContext) field_Subscription_connectToRoom_args(ctx context.Co
 		}
 	}
 	args["token"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_listenForNewCreatedTopic_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 uuid.UUID
+	if tmp, ok := rawArgs["roomID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomID"))
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roomID"] = arg0
 	return args, nil
 }
 
@@ -3523,6 +3552,88 @@ func (ec *executionContext) fieldContext_Subscription_connectToRoom(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Subscription_connectToRoom_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_listenForNewCreatedTopic(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_listenForNewCreatedTopic(ctx, field)
+	if err != nil {
+		return nil
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().ListenForNewCreatedTopic(rctx, fc.Args["roomID"].(uuid.UUID))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		return nil
+	}
+	return func(ctx context.Context) graphql.Marshaler {
+		select {
+		case res, ok := <-resTmp.(<-chan *model.Topic):
+			if !ok {
+				return nil
+			}
+			return graphql.WriterFunc(func(w io.Writer) {
+				w.Write([]byte{'{'})
+				graphql.MarshalString(field.Alias).MarshalGQL(w)
+				w.Write([]byte{':'})
+				ec.marshalOTopic2ᚖgithubᚗcomᚋThitiᚑDevᚋscrumerizationᚑcoreᚑserviceᚋgraphᚋmodelᚐTopic(ctx, field.Selections, res).MarshalGQL(w)
+				w.Write([]byte{'}'})
+			})
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (ec *executionContext) fieldContext_Subscription_listenForNewCreatedTopic(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Topic_id(ctx, field)
+			case "roomID":
+				return ec.fieldContext_Topic_roomID(ctx, field)
+			case "name":
+				return ec.fieldContext_Topic_name(ctx, field)
+			case "avgScore":
+				return ec.fieldContext_Topic_avgScore(ctx, field)
+			case "isActive":
+				return ec.fieldContext_Topic_isActive(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Topic_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Topic_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Topic", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_listenForNewCreatedTopic_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -7115,6 +7226,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 		return ec._Subscription_serverTimeStream(ctx, fields[0])
 	case "connectToRoom":
 		return ec._Subscription_connectToRoom(ctx, fields[0])
+	case "listenForNewCreatedTopic":
+		return ec._Subscription_listenForNewCreatedTopic(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
