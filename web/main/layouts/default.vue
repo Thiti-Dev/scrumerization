@@ -7,7 +7,7 @@
                 </a>
                 <p class="text-2xl">Scrumerization</p>
             </div>
-            <ul class="hidden items-center justify-center gap-6 md:flex">
+            <ul class="hidden items-center justify-center gap-6 md:flex" v-if="authStore.isAuthenticated">
                 <NuxtLink to="/app">
                     <li class="pt-1.5 font-dm text-sm font-medium text-slate-700">
                         <p>My Rooms</p>
@@ -21,7 +21,7 @@
                 </li> -->
             </ul>
             <div class="flex-grow"></div>
-                <div className="flex flex-wrap justify-center">
+                <div className="flex flex-wrap justify-center" v-if="authStore.isAuthenticated">
                     <p className="relative cursor-pointer" @click="authStore.setAuthenticationStatus(false)">
                         <span className="absolute top-0 left-0 mt-1 ml-1 h-full w-full rounded bg-black"></span>
                         <span className="active:bg-gray-700 select-none fold-bold relative inline-block h-full w-full rounded border-2 border-black bg-white px-3 py-1 text-base font-bold text-black transition duration-100 hover:bg-red-400 hover:text-gray-900 min-w-[150px] text-center">Logout</span>

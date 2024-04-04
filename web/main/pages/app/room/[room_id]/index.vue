@@ -1,6 +1,6 @@
 <template>
     <div class="font-workbench">
-        <section class="py-1 bg-gray-100 h-screen_">
+        <section class="py-1 h-screen_">
             <div class="w-full xl:w-8/12 mb-12 xl:mb-0 px-4 mx-auto mt-24">
             <div class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded ">
                 <div class="rounded-t mb-0 px-4 py-3 border-0">

@@ -12,7 +12,10 @@ export default defineNuxtConfig({
     clients: {
       default: {
         httpEndpoint: 'http://localhost:8080/query',
-        wsEndpoint: 'ws://localhost:8080/query'
+        wsEndpoint: 'ws://localhost:8080/query',
+        // httpLinkOptions:{
+        //   //# TODO: refresh token
+        // }
       }
     },
   },

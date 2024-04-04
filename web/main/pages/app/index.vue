@@ -11,9 +11,9 @@
                             <th scope="col" class="px-6 py-3">
                                 Room
                             </th>
-                            <th scope="col" class="px-6 py-3">
+                            <!-- <th scope="col" class="px-6 py-3">
                                 Password
-                            </th>
+                            </th> -->
                             <th scope="col" class="px-6 py-3">
                                 Created Date
                             </th>
@@ -27,9 +27,9 @@
                             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ room.room_name }}
                             </th>
-                            <td class="px-6 py-4">
+                            <!-- <td class="px-6 py-4">
                                 {{ room.password ?? 'No-password' }}
-                            </td>
+                            </td> -->
                             <td class="px-6 py-4">
                                 {{ new Date(room.createdAt).toISOString().substring(0, 10) }}
                             </td>
@@ -90,10 +90,10 @@
                                     <label for="room-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span class="text-red-500">*</span>Room name</label>
                                     <input v-model="roomFormData.name" type="text" id="room-name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="eg. SprintPlanning 1" required />
                                 </div>
-                                <div class="mb-5">
+                                <!-- <div class="mb-5">
                                     <label for="room-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Room password</label>
                                     <input v-model="roomFormData.password" type="password" id="room-password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="*********"/>
-                                </div>
+                                </div> -->
                         </div>
                         <!-- Modal footer -->
                         <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
