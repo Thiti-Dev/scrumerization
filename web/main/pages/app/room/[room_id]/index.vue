@@ -70,7 +70,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="topic of result?.topics" class="table-auto border-b">
+                        <tr v-for="topic of topics" class="table-auto border-b hover:bg-gray-100" :class="{'bg-green-100': topic.isActive}">
                             <th @click="navigateTo(`/app/room/${route.params.room_id}/topic/${topic.id}`,{external:true})" class="cursor-pointer border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left text-blueGray-700 ">
                                 {{ topic.name }}
                             </th>
@@ -135,19 +135,43 @@
         }
     }
 
-    const {result,restart} = useQuery(ROOM_INFO_ALONG_WITH_TOPICS_QUERY,{
+    const topics = ref<Topic[] | null>(null)
+    const {result,restart,onResult: onResultReady} = useQuery(ROOM_INFO_ALONG_WITH_TOPICS_QUERY,{
     "roomWhere": {
         "id": route.params.room_id
     },
     "roomID": route.params.room_id
     },{...createApolloContextAuthorization(),fetchPolicy:'no-cache'})
 
+
     const {mutate: createTopic} = useMutation(CREATE_TOPIC_MUTATION,createApolloContextAuthorization)
+
+    const {result: topicSubscriptionResult} = useSubscription(LISTEN_FOR_NEW_TOPIC_SUBSCRIPTION,{roomID: route.params.room_id})
+
+    watch(() => topicSubscriptionResult.value?.listenForNewCreatedTopic, (newValue,oldValue) => {
+        if(!newValue) return
+        // append the newly added topic
+        // topics.value?.unshift(newValue);
+        // also setting previous isActive to false
+
+        const oldTopicsWithFalseActive = topics.value?.map((topic) => ({
+            ...topic,
+            isActive: false
+        }))
+        topics.value = [newValue,...oldTopicsWithFalseActive as Topic[]]
+
+
+    })
+
+    onResultReady((result) => {
+        topics.value = result.data.topics
+    })
 </script>
 
 <!-- GRAPHQL -->
 <script lang="ts">
     import {graphql} from "../../../../.gen/gql"
+    import type {Topic} from "../../../../.gen/gql/graphql"
 
     const CREATE_TOPIC_MUTATION = graphql(`
         mutation createTopic($input: CreateTopicInput!){
@@ -182,19 +206,16 @@
         }
     `)
 
-    const CONNECT_TO_ROOM_SUBSCRIPTION = graphql(`
-        subscription connectToRoom($token: String!,$roomID:UUID!){
-            connectToRoom(roomID: $roomID,token: $token){
-                clients{
-                    uuid
-                    name
-                    isVoted
-                }
-                active
-                onGoingTopic{
-                    id
-                    name
-                }
+    const LISTEN_FOR_NEW_TOPIC_SUBSCRIPTION = graphql(`
+        subscription listenForNewTopic($roomID: UUID!){
+            listenForNewCreatedTopic(roomID: $roomID){
+                id
+                roomID
+                name
+                avgScore
+                isActive
+                createdAt
+                updatedAt
             }
         }
     `)
