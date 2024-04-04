@@ -121,7 +121,7 @@
     }
 
     function onConfirmHandler(){
-        if(!givenPoint.value) return
+        if(givenPoint.value === null) return
         isConfirmed.value = true
         emitVote({topicID,input:{point:givenPoint.value,description: givenDesc.value || undefined}})
     }
