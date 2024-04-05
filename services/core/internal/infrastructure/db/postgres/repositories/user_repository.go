@@ -50,7 +50,7 @@ func (repo *UserRepository) LoginUser(input model.LoginUserInput) (string, strin
 		return "", "", errors.New("invalid password")
 	}
 
-	payload, err := tokenizer.NewPayload(user.ID, *user.Name, user.Role, time.Hour)
+	payload, err := tokenizer.NewPayload(user.ID, *user.Name, user.Role, time.Hour*6)
 	if err != nil {
 		return "", "", err
 	}
