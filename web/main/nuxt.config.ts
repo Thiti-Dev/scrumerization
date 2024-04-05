@@ -11,8 +11,8 @@ export default defineNuxtConfig({
   apollo: {
     clients: {
       default: {
-        httpEndpoint: 'http://localhost:8080/query',
-        wsEndpoint: 'ws://localhost:8080/query',
+        httpEndpoint: process.env.NUXT_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:8080/query",
+        wsEndpoint: process.env.NUXT_PUBLIC_WEB_SOCKET_ENDPOINT || 'ws://localhost:8080/query',
         // httpLinkOptions:{
         //   //# TODO: refresh token
         // }
