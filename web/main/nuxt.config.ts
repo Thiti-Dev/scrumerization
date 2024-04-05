@@ -22,5 +22,10 @@ export default defineNuxtConfig({
   routeRules: {
     '/app': {ssr: false},
     '/app/room/**' : {ssr:false}
+  },
+  runtimeConfig:{
+    public:{
+      version: 0 // Initial version, will be overrided by .env
+    }
   }
 })

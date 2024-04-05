@@ -34,8 +34,9 @@
                                 {{ new Date(room.createdAt).toISOString().substring(0, 10) }}
                             </td>
                             <td>
-                                <a @click="enterRoom(room.id)" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Enter</a>
-                                <a @click="copyLink(room.id)" class="pl-5 font-medium text-blue-600 dark:text-blue-500 hover:underline">Copy link</a>
+                                <a @click="enterRoom(room.id)" class="select-none cursor-pointer font-medium text-blue-600 dark:text-blue-500 hover:underline">Enter</a>
+                                <a v-if="justCopiedRoomID !== room.id" @click="copyLink(room.id)" class="select-none cursor-pointer pl-5 font-medium text-blue-600 dark:text-blue-500 hover:underline">Copy link</a>
+                                <a v-else class="select-none pl-5 font-medium text-blue-600 dark:text-blue-500 hover:underline">Copied</a>
                             </td>
                         </tr>
                         <tr v-for="_ of Array.from(Array(10-(result?.rooms.count || 0)))" class="border-b bg-gray-800 border-gray-700 h-12">
@@ -51,7 +52,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="flex flex-col items-center bg-gray-700 rounded-lg rounded-t-none">
+            <div class="flex flex-col items-center bg-gray-700 rounded-lg rounded-t-none select-none">
                 <!-- Help text -->
                 <span class="text-sm text-gray-700 dark:text-gray-400">
                     Showing <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage * pageLimit)+1  }}</span> to <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage * pageLimit) + result?.rooms.count! }}</span> of <span class="font-semibold text-gray-900 dark:text-white">{{ result?.rooms.totalCount }}</span> Entries
@@ -118,8 +119,19 @@
     import { computed, watchEffect } from 'vue';
     import { useAuthStore } from '~/stores/auth';
 
+    const justCopiedRoomID = ref<string | null>(null)
+    let copiedResetTimeout: NodeJS.Timeout | null = null
+
+
     function copyLink(link:string){
-        navigator.clipboard.writeText(link);
+        justCopiedRoomID.value = link
+        navigator.clipboard.writeText(window.location.origin+"/room/"+ link);
+
+        copiedResetTimeout && clearTimeout(copiedResetTimeout)
+        copiedResetTimeout = setTimeout(() => {
+            justCopiedRoomID.value = null
+        }, 2000);
+        
     }
 
     function enterRoom(roomID: string){
@@ -163,7 +175,7 @@
 
     const authStore = useAuthStore()
     
-    const {result,error,refetch,restart} = useQuery(
+    const {result,error,refetch,restart,onError} = useQuery(
         graphql(`
             query listCreatedRooms($where: RoomWhereClause!,$paginate: PaginationInput){
                 rooms(where: $where,paginate:$paginate){
@@ -205,9 +217,18 @@
         refetch({where:{creator_id:authStore.userID},paginate:{limit:pageLimit,offset: newPage * pageLimit}})
     })
 
-    watchEffect(() => {
-        if(error.value?.graphQLErrors[0].extensions.code === 'Authentication'){
-            navigateTo("/login")
+    // watchEffect(() => {
+    //     if(error.value?.graphQLErrors[0].extensions.code === 'Authentication'){
+    //         navigateTo("/login")
+    //     }
+    // })
+
+    onError((error) => {
+        for(const err of error.graphQLErrors){
+            if(err.extensions.code === 'Authentication'){
+                authStore.setAuthenticationStatus(false)
+                break
+            }
         }
     })
 </script>
