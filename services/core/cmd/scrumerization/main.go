@@ -33,7 +33,7 @@ func main() {
 
 	config, err := infraUtils.LoadConfig(".")
 	if err != nil {
-		log.Fatal("cannot load config:", err)
+		log.Print("only use config from system environment as no config file is found:", err)
 	}
 
 	db, err := sql.Open("postgres", config.DBSource)
