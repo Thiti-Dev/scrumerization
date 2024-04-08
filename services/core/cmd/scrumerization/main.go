@@ -33,8 +33,10 @@ func main() {
 
 	config, err := infraUtils.LoadConfig(".")
 	if err != nil {
-		log.Print("only use config from system environment as no config file is found:", err)
+		log.Println("only use config from system environment as no config file is found:", err)
 	}
+
+	log.Println("Database endpoint: ", config.DBSource)
 
 	db, err := sql.Open("postgres", config.DBSource)
 	panicOnError(err)
