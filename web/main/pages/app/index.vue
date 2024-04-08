@@ -125,7 +125,7 @@
 
     function copyLink(link:string){
         justCopiedRoomID.value = link
-        navigator.clipboard.writeText(window.location.origin+"/room/"+ link);
+        navigator.clipboard.writeText(window.location.origin+"/app/room/"+ link);
 
         copiedResetTimeout && clearTimeout(copiedResetTimeout)
         copiedResetTimeout = setTimeout(() => {
