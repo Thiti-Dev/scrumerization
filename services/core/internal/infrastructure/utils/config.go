@@ -15,6 +15,11 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.SetConfigName("app") // looking for app.env
 	viper.SetConfigType("env") // json, xml . . . .
 
+	/* ----------------------- PRIORITIZE THE ENV FROM OS ----------------------- */
+	viper.BindEnv("DB_SOURCE")
+	viper.BindEnv("JWT_SECRET")
+	/* -------------------------------------------------------------------------- */
+
 	viper.AutomaticEnv()
 
 	err = viper.ReadInConfig()
