@@ -32,6 +32,8 @@ migrate-down-step:
         $(error step is not set. Please provide a value representing number.)
     endif
 	migrate -path ${migration_path} -database "$(DB_SOURCE)" -verbose down $(step)
+jet-gen:
+	jet -dsn=${DB_SOURCE} -schema=public -path=./.gen
 jet-gen-ci:
 	jet -dsn=${local_db_connection_url} -schema=public -path=./.gen
-.PHONY: dev gql-generate migrate-create migrate-up migrate-up-ci migrate-down migrate-up-step migrate-up-ci migrate-down-ci migrate-down-step migrate-reset-ci jet-gen-ci
+.PHONY: dev gql-generate migrate-create migrate-up migrate-up-ci migrate-down migrate-up-step migrate-up-ci migrate-down-ci migrate-down-step migrate-reset-ci jet-gen jet-gen-ci
