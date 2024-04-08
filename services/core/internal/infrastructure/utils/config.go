@@ -15,16 +15,18 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.SetConfigName("app") // looking for app.env
 	viper.SetConfigType("env") // json, xml . . . .
 
-	/* ----------------------- PRIORITIZE THE ENV FROM OS ----------------------- */
-	viper.BindEnv("DB_SOURCE")
-	viper.BindEnv("JWT_SECRET")
-	/* -------------------------------------------------------------------------- */
-
+	// viper.AllowEmptyEnv(true)
 	viper.AutomaticEnv()
 
 	err = viper.ReadInConfig()
 	if err != nil {
-		return
+		/* ----------------------- PRIORITIZE THE ENV FROM OS ----------------------- */
+		viper.BindEnv("DB_SOURCE")
+		viper.BindEnv("JWT_SECRET")
+		viper.AutomaticEnv()
+		/* -------------------------------------------------------------------------- */
+
+		// return // no need to return, send it to be unmarshalled
 	}
 
 	err = viper.Unmarshal(&config)
