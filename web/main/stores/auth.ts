@@ -12,7 +12,7 @@ export const useAuthStore = defineStore('authStore', {
                 // attempting to logout
                  localStorage.clear() // for now localstorage only contains 2 values
                  this.isAuthenticated = false
-                 navigateTo("/login")
+                 navigateTo("/login",{external:true}) // external = true solved the case when token found invalid after refresh and still stuck at the same page ignoring the navigateTo somehow
             }
 
 

@@ -225,7 +225,7 @@
 
     onError((error) => {
         for(const err of error.graphQLErrors){
-            if(err.extensions.code === 'Authentication'){
+            if(err.extensions?.code === 'Authentication'){
                 authStore.setAuthenticationStatus(false)
                 break
             }
